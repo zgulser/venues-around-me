@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="100dp"
+    android:background="?android:attr/selectableItemBackground">
+
+    <FrameLayout
+        android:id="@+id/employeeThumbnailLayout"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center_vertical">
+
+        <com.android.volley.toolbox.NetworkImageView
+            android:id="@+id/repoAvatar"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/venue_default_avatar"
+            android:scaleType="fitXY"
+            android:layout_alignParentLeft="true"/>
+
+        <ImageView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/venue_image_mask" />
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/repoName"
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_alignTop="@+id/employeeThumbnailLayout"
+        android:layout_toRightOf="@+id/employeeThumbnailLayout"
+        android:maxLines="1"
+        android:layout_gravity="center_vertical"
+        android:ellipsize="end"
+        android:textSize="18sp"
+        android:textColor="@android:color/black"
+        android:text="Drama Queen" />
+
+</LinearLayout>
