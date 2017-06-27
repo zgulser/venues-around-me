@@ -1,115 +1,142 @@
 package assignment.adyen.com.venuesaroundme.location;
 
-import android.app.Activity;
+import android.content.Intent;
 import android.location.Location;
-import android.location.LocationListener;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.CommonStatusCodes;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.LocationSettingsStatusCodes;
+import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.lang.ref.WeakReference;
+
+import assignment.adyen.com.venuesaroundme.application.FsqVenuesApplication;
+import assignment.adyen.com.venuesaroundme.ui.MapUtils;
+import assignment.adyen.com.venuesaroundme.ui.VenuesMapActivity;
+
 /**
- * Created by Zeki on 25/06/2017.
+ * Created by Zeki
  */
 
 public class LocationProviderProxy implements GoogleApiClient.ConnectionCallbacks,
-        GoogleApiClient.OnConnectionFailedListener,
-        ILocationProvider{
+        GoogleApiClient.OnConnectionFailedListener, ILocationProvider, ILocationSettingObserver{
 
-    private boolean googleApiClientConnected;
-    private Handler delayedHandler;
-    public GoogleApiClient googleApiClient;
-    public LatLng myPosition;
+    private Handler delayedEventHandler;
+    private FusedLocationProviderClient fusedLocationProviderClient;
+    private GoogleApiClient googleApiClient;
+    private ILocationSettingChecker locationSettingChecker;
+    private LatLng myPosition;
+    private boolean isFirstLocationRequestReceived;
 
-    public final LocationListener myLocationListener = new LocationListener() {
+    public final LocationCallback myLocationCallback = new LocationCallback() {
         @Override
-        public void onLocationChanged(Location location) {
-            myPosition = new LatLng(location.getLatitude(), location.getLongitude());
-        }
-
-        @Override
-        public void onStatusChanged(String s, int i, Bundle bundle) {
-
-        }
-
-        @Override
-        public void onProviderEnabled(String s) {
-
-        }
-
-        @Override
-        public void onProviderDisabled(String s) {
-
+        public void onLocationResult(LocationResult locationResult) {
+            super.onLocationResult(locationResult);
+            for(Location location : locationResult.getLocations()){
+                myPosition = new LatLng(location.getLatitude(), location.getLongitude());
+                if(myPosition != null) {
+                    LocalBroadcastManager.getInstance(FsqVenuesApplication.getAppContext()).sendBroadcast(new Intent(LocationUtils.MY_LOCATION_RECEIVED));
+                } else {
+                    LocalBroadcastManager.getInstance(FsqVenuesApplication.getAppContext()).sendBroadcast(new Intent(LocationUtils.MY_LOCATION_RECEIVED_NULL));
+                }
+            }
         }
     };
 
-    public LocationProviderProxy(Activity context){
-        this.delayedHandler = new Handler(Looper.getMainLooper(), new Handler.Callback() {
-            @Override
-            public boolean handleMessage(Message message) {
-                return false;
-            }
-        });
+    public LocationProviderProxy(ILocationSettingChecker locationSettingChecker){
+        this.locationSettingChecker = locationSettingChecker;
+        this.locationSettingChecker.addLocationSettingRequestObserver(this);
+        this.delayedEventHandler = new Handler(Looper.getMainLooper(), null);
     }
 
-    public LocationRequest createLocationRequest() {
-        LocationRequest locationRequest = new LocationRequest();
-        locationRequest.setInterval(LocationUtils.LOCATION_UPDATE_INTERVAL_IN_MS);
-        locationRequest.setFastestInterval(LocationUtils.LOCATION_UPDATE_FASTEST_INTERVAL_IN_MS);
-        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        return locationRequest;
+    public void connect(){
+        if(isGoogleApiConneactable()) {
+            googleApiClient.connect();
+        }
+    }
+
+    private boolean isGoogleApiConneactable() {
+        return (googleApiClient != null ) && !(googleApiClient.isConnected() | googleApiClient.isConnecting());
+    }
+
+    public void disconnect(){
+        if(isGoogleApiDisconneactable()) {
+            googleApiClient.disconnect();
+        }
+    }
+
+    private boolean isGoogleApiDisconneactable() {
+        return (googleApiClient != null ) && (googleApiClient.isConnected() | googleApiClient.isConnecting());
     }
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        googleApiClientConnected = true;
-        getMyLocationForTheFirstTime();
+        locationSettingChecker.checkLocationSettingsEnabled();
+    }
 
-        delayedHandler.postDelayed(new Runnable() {
+    private void initFusedLocationProviderClient(){
+        if(fusedLocationProviderClient == null) {
+            fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(FsqVenuesApplication.getAppContext());
+        }
+    }
+
+    private void getMyLocationForTheFirstTime(){
+        myPosition = LocationUtils.getMyCurrentLocation(FsqVenuesApplication.getAppContext(), googleApiClient);
+        if(myPosition != null) {
+            LocalBroadcastManager.getInstance(FsqVenuesApplication.getAppContext()).sendBroadcast(
+                    new Intent(LocationUtils.MY_LOCATION_RECEIVED_FIRST_TIME));
+        } else {
+            LocalBroadcastManager.getInstance(FsqVenuesApplication.getAppContext()).sendBroadcast(
+                    new Intent(LocationUtils.MY_LOCATION_RECEIVED_NULL));
+        }
+    }
+
+    private void sendEventToStartLocationUpdates(){
+        delayedEventHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                initRequestLocationUpdateReceiver();
+                startLocationUpdates();
             }
         }, LocationUtils.LOCATION_UPDATE_DELAY_IN_MS);
     }
 
-    private void getMyLocationForTheFirstTime(){
-        myPosition = LocationUtils.getMyCurrentLocation(context, googleApiClient);
-    }
-
     @Override
     public void onConnectionSuspended(int i) {
-        googleApiClientConnected = false;
-        unregisterMyLocationUpdateReceiver();
+        stopLocationUpdates();
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        googleApiClientConnected = false;
-        unregisterMyLocationUpdateReceiver();
+        stopLocationUpdates();
     }
 
-    private void initRequestLocationUpdateReceiver(){
+    private void startLocationUpdates(){
         try {
             if (googleApiClient.isConnected()) {
-                //LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, createLocationRequest(), myLocationListener);
+                fusedLocationProviderClient.requestLocationUpdates(LocationUtils.getLocationRequest(), myLocationCallback, null);
             }
         } catch (SecurityException se) {
             se.printStackTrace();
         }
     }
 
-    private void unregisterMyLocationUpdateReceiver() {
+    private void stopLocationUpdates() {
         if (googleApiClient.isConnected()) {
             try {
-                //LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, myLocationListener);
+                fusedLocationProviderClient.removeLocationUpdates(myLocationCallback);
             } catch(Exception e){
                 e.printStackTrace();
             }
@@ -123,4 +150,52 @@ public class LocationProviderProxy implements GoogleApiClient.ConnectionCallback
         positionArray[1] = myPosition.longitude;
         return positionArray;
     }
+
+    public GoogleApiClient getGoogleApiClient() {
+        return googleApiClient;
+    }
+
+    public void setGoogleApiClient() {
+        googleApiClient = new GoogleApiClient.Builder(FsqVenuesApplication.getAppContext())
+                .addApi(LocationServices.API)
+                .addApi(Places.GEO_DATA_API)
+                .addApi(Places.PLACE_DETECTION_API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .build();
+    }
+
+    @Override
+    public void onLocationSettingsRequestSuccess() {
+        if (!isFirstLocationRequestReceived){
+            initFusedLocationProviderClient();
+            getMyLocationForTheFirstTime();
+            sendEventToStartLocationUpdates();
+        }
+    }
+
+    @Override
+    public void onLocationSettingsRequestFailed(int statusCode) {
+        switch (statusCode) {
+            case CommonStatusCodes.RESOLUTION_REQUIRED:
+                locationSettingChecker.showLocationSettingError();
+                break;
+            case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                // TODO: Show something more grave
+                break;
+        }
+    }
+
+    public LatLng getMyPosition() {
+        return myPosition;
+    }
+
+    public boolean isFirstLocationRequestReceived() {
+        return isFirstLocationRequestReceived;
+    }
+
+    public void setFirstLocationRequestReceived(boolean firstLocationRequestReceived) {
+        isFirstLocationRequestReceived = firstLocationRequestReceived;
+    }
+
 }

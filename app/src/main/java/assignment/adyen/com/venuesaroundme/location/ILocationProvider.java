@@ -1,9 +1,11 @@
 package assignment.adyen.com.venuesaroundme.location;
 
+import com.google.android.gms.location.LocationRequest;
+
 /**
- * Created by Zeki on 25/06/2017.
+ * Created by Zeki
  */
 
-public interface ILocationProvider {
+public interface ILocationProvider extends ILocationSettingObserver{
     double[] getMyLatitudeAndLongitude();
 }

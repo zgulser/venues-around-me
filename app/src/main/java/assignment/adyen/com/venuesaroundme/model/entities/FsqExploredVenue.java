@@ -2,6 +2,8 @@ package assignment.adyen.com.venuesaroundme.model.entities;
 
 import com.google.gson.annotations.SerializedName;
 
+import java.util.List;
+
 /**
  * Created by Zeki on 25/06/2017.
  */
@@ -9,16 +11,66 @@ import com.google.gson.annotations.SerializedName;
 public class FsqExploredVenue {
 
     @SerializedName("id")
-    String venueId;
+    String id;
 
     @SerializedName("name")
-    String venueName;
+    String name;
 
-    public String getVenueId() {
-        return venueId;
+    @SerializedName("contact")
+    FsqExploredVenueContact contactInfo;
+
+    @SerializedName("location")
+    FsqExploredVenueLocation location;
+
+    @SerializedName("rating")
+    String rating;
+
+    @SerializedName("ratingColor")
+    String ratingColor;
+
+    @SerializedName("categories")
+    List<FsqExploredVenueCategory> categories;
+
+    @SerializedName("photos")
+    FsqExploredVenuePhoto photos;
+
+    @SerializedName("hours")
+    FsqExploredVenueHours hours;
+
+    public String getId() {
+        return id;
     }
 
-    public String getVenueName() {
-        return venueName;
+    public String getName() {
+        return name;
     }
+
+    public String getRating() {
+        return rating;
+    }
+
+    public String getRatingColor() {
+        return ratingColor;
+    }
+
+    public List<FsqExploredVenueCategory> getCategories() {
+        return categories;
+    }
+
+    public FsqExploredVenuePhoto getPhotos() {
+        return photos;
+    }
+
+    public FsqExploredVenueHours getHours() {
+        return hours;
+    }
+
+    public FsqExploredVenueContact getContactInfo() {
+        return contactInfo;
+    }
+
+    public FsqExploredVenueLocation getLocation() {
+        return location;
+    }
+
 }

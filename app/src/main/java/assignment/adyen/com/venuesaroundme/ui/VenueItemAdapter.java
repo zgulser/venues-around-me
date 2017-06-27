@@ -1,80 +1,88 @@
 package assignment.adyen.com.venuesaroundme.ui;
 
+import android.content.ClipData;
 import android.content.Context;
+import android.graphics.Color;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
 import com.android.volley.toolbox.NetworkImageView;
 
 import java.util.List;
 
+import assignment.adyen.com.venuesaroundme.R;
+import assignment.adyen.com.venuesaroundme.databinding.VenueItemBinding;
 import assignment.adyen.com.venuesaroundme.model.entities.FsqExploredVenue;
-import plugins.backbase.com.baseapplication.R;
-import plugins.backbase.com.baseapplication.core.model.entities.Repo;
-import plugins.backbase.com.baseapplication.core.networking.imagerequest.VolleyImageRequestController;
+import assignment.adyen.com.venuesaroundme.networking.imagerequests.VolleyImageRequestController;
 
 /**
- * Created by Backbase R&D B.V on 15/06/2017.
+ * Created by Zeki
  */
 
-public class VenueItemAdapter extends RecyclerView.Adapter<VenueItemAdapter.CustomItemHolder>{
+public class VenueItemAdapter extends RecyclerView.Adapter<VenueItemAdapter.VenueItemHolder>{
 
-    private List<FsqExploredVenue> repoList;
-    private IAdapterListener adapterListenerImpl;
+    private List<FsqExploredVenue> venueList;
+    private IListItemClickListener  listItemClickListenerImpl;
 
-    public interface IAdapterListener {}
+    public interface IListItemClickListener {
+        void onListItemClick(FsqExploredVenue venue);
+    }
 
-    VenueItemAdapter(List<FsqExploredVenue> repoList){
-        this.repoList = repoList;
+    public VenueItemAdapter(IListItemClickListener listItemClickListener, List<FsqExploredVenue> venueList){
+        this.listItemClickListenerImpl = listItemClickListener;
+        this.venueList = venueList;
     }
 
     @Override
-    public CustomItemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.venue_item, parent, false);
-        ((RecyclerView.LayoutParams)view.getLayoutParams()).setMargins(20, 20, 20, 20);
-        return new CustomItemHolder(view);
+    public VenueItemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
+        VenueItemBinding venueItemBinding = VenueItemBinding.inflate(layoutInflater, parent, false);
+        ((RecyclerView.LayoutParams)venueItemBinding.getRoot().getLayoutParams()).setMargins(30, 10, 30, 10);
+        return new VenueItemHolder(venueItemBinding);
     }
 
     @Override
-    public void onBindViewHolder(CustomItemHolder holder, int position) {
-        holder.repoName.setText(repoList.get(position).getVenueName());
+    public void onBindViewHolder(VenueItemHolder venueItemHolder, int position) {
+        FsqExploredVenue venue = venueList.get(position);
+        venueItemHolder.bind(venue);
     }
 
     @Override
     public int getItemCount() {
-        return repoList.size();
+        return venueList.size();
     }
 
-    private void setupAdapterListener(Context context) {
-        if (context instanceof IAdapterListener){
-            adapterListenerImpl = (IAdapterListener) context;
+    public class VenueItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+
+        private final VenueItemBinding venueItemBinding;
+
+        public VenueItemHolder(VenueItemBinding venueItemBinding){
+            super(venueItemBinding.getRoot());
+            venueItemBinding.getRoot().setOnClickListener(this);
+            this.venueItemBinding = venueItemBinding;
         }
-    }
 
-    public static class CustomItemHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener{
+        public void bind(FsqExploredVenue venue) {
+            venueItemBinding.setVenue(venue);
+            venueItemBinding.executePendingBindings();
 
-        public TextView repoName;
-        public NetworkImageView repoAvatar;
+            venueItemBinding.venueRating.setTextColor(Color.parseColor("#" + venue.getRatingColor()));
+            venueItemBinding.venueAvatar.setDefaultImageResId(R.drawable.venue_default_icon);
+            venueItemBinding.venueAvatar.setErrorImageResId(R.drawable.venue_default_icon);
+            venueItemBinding.venueAvatar.setImageUrl(getImageUrl(venue), VolleyImageRequestController.getInstance().getImageLoader());
+        }
 
-        CustomItemHolder(View itemView){
-            super(itemView);
-            repoName = (TextView) itemView.findViewById(R.id.repoName);
-            repoAvatar = (NetworkImageView) itemView.findViewById(R.id.repoAvatar);
+        private String getImageUrl(FsqExploredVenue venue){
+            return venue.getCategories().get(0).getIcon().getUrlPrefix() +
+                    venue.getCategories().get(0).getIcon().getUrlSuffix();
         }
 
         @Override
         public void onClick(View view) {
-
-        }
-
-        @Override
-        public boolean onLongClick(View view) {
-            return false;
+            int position = getAdapterPosition();
+            listItemClickListenerImpl.onListItemClick(venueList.get(position));
         }
     }
-
-
 }

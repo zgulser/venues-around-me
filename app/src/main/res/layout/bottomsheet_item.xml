@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <LinearLayout
+        android:id="@+id/venueNameBottomSheetRootLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="30dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/venueNameBottomSheetLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/venueNameBottomSheet"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:textSize="18sp"
+                android:ellipsize="end"
+                android:textColor="@android:color/black"
+                android:text="sdsad"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="30dp">
+
+                <RatingBar
+                    style="?android:attr/ratingBarStyleSmall"
+                    android:layout_gravity="center"
+                    android:id="@+id/venueRatingBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <TextView
+                    android:id="@+id/venueRatingBottomSheet"
+                    android:layout_gravity="center"
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"
+                    android:ellipsize="end"
+                    android:layout_marginLeft="10dp"
+                    android:textSize="16sp"/>
+
+            </LinearLayout>
+
+            <HorizontalScrollView
+                android:id="@+id/venueImagesLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginBottom="20dp">
+
+                <LinearLayout
+                    android:id="@+id/horizontalScrollLinear"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                </LinearLayout>
+
+            </HorizontalScrollView>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/venueAddressBottomSheetLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_location"/>
+
+            <TextView
+                android:id="@+id/venueAddressBottomSheet"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:layout_marginLeft="10dp"
+                android:ellipsize="end"
+                android:textSize="15sp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/venuePhoneBottomSheetLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_phone_black"/>
+
+            <TextView
+                android:id="@+id/venuePhoneBottomSheet"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:layout_marginLeft="10dp"
+                android:ellipsize="end"
+                android:textSize="15sp"/>
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/venueHourBottomSheetLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:orientation="horizontal">
+
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_av_timer"/>
+
+            <TextView
+                android:id="@+id/venueHoursBottomSheet"
+                android:layout_width="match_parent"
+                android:layout_height="20dp"
+                android:layout_marginLeft="10dp"
+                android:ellipsize="end"
+                android:textSize="15sp"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+</layout>

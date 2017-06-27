@@ -1,41 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="100dp"
-    android:background="?android:attr/selectableItemBackground">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable name="venue" type="assignment.adyen.com.venuesaroundme.model.entities.FsqExploredVenue"/>
+    </data>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:background="?android:attr/selectableItemBackground">
 
-    <FrameLayout
-        android:id="@+id/employeeThumbnailLayout"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_gravity="center_vertical">
-
-        <com.android.volley.toolbox.NetworkImageView
-            android:id="@+id/repoAvatar"
+        <FrameLayout
+            android:layout_alignTop="@+id/venueImageLayout"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:src="@drawable/venue_default_avatar"
-            android:scaleType="fitXY"
-            android:layout_alignParentLeft="true"/>
+            android:layout_gravity="center_vertical">
 
-        <ImageView
-            android:layout_width="60dp"
+            <com.android.volley.toolbox.NetworkImageView
+                android:id="@+id/venueAvatar"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/venue_default_icon"
+                android:scaleType="fitXY"
+                android:layout_alignParentLeft="true"/>
+
+            <ImageView
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/venue_image_mask" />
+        </FrameLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
             android:layout_height="60dp"
-            android:src="@drawable/venue_image_mask" />
-    </FrameLayout>
+            android:orientation="vertical"
+            android:layout_marginLeft="10dp"
+            android:layout_gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/repoName"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
-        android:layout_alignTop="@+id/employeeThumbnailLayout"
-        android:layout_toRightOf="@+id/employeeThumbnailLayout"
-        android:maxLines="1"
-        android:layout_gravity="center_vertical"
-        android:ellipsize="end"
-        android:textSize="18sp"
-        android:textColor="@android:color/black"
-        android:text="Drama Queen" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true"
+                android:orientation="horizontal">
 
-</LinearLayout>
+                <TextView
+                    android:id="@+id/venueName"
+                    android:layout_width="175dp"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:gravity="left|center"
+                    android:ellipsize="end"
+                    android:textSize="18sp"
+                    android:textColor="@android:color/black"
+                    android:text="@{venue.name}" />
+
+                <TextView
+                    android:id="@+id/venueDistance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:gravity="right|center"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textSize="16sp"
+                    android:textColor="@android:color/darker_gray"
+                    android:text="@{'(' + String.valueOf(venue.location.distance) + 'm' + ')' }" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true"
+                android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/venueAddress"
+                        android:layout_width="175dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="left|center"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/darker_gray"
+                        android:text="@{venue.location.address}" />
+
+                    <TextView
+                        android:id="@+id/venueRating"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginLeft="5dp"
+                        android:gravity="right|center"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:textSize="16sp"
+                        android:text="@{venue.rating}" />
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+    </LinearLayout>
+</layout>

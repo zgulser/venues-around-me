@@ -25,4 +25,14 @@ public class TestLocationProvider implements ILocationProvider {
         double[] testPosition = {testLatitude, testLongitude};
         return testPosition;
     }
+
+    @Override
+    public void onLocationSettingsRequestSuccess() {
+
+    }
+
+    @Override
+    public void onLocationSettingsRequestFailed(int statusCode) {
+
+    }
 }
