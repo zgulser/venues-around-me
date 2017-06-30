@@ -1,6 +1,7 @@
 package assignment.adyen.com.venuesaroundme.networking;
 
 import android.content.Intent;
+import android.support.annotation.VisibleForTesting;
 import android.support.v4.content.LocalBroadcastManager;
 
 import java.util.ArrayList;
@@ -10,7 +11,6 @@ import java.util.TreeMap;
 
 import assignment.adyen.com.venuesaroundme.application.FsqVenuesApplication;
 import assignment.adyen.com.venuesaroundme.location.LocationUtils;
-import assignment.adyen.com.venuesaroundme.location.TestLocationProvider;
 import assignment.adyen.com.venuesaroundme.model.entities.FsqVenueRequestRoot;
 import assignment.adyen.com.venuesaroundme.networking.utils.NetworkingUtils;
 import retrofit2.Call;
@@ -85,13 +85,13 @@ public class FsqVenueRequestController implements IVenueRequestContract {
 
             @Override
             public void onFailure(Call<FsqVenueRequestRoot> call, Throwable t) {
-                System.out.println("call url" + call.request().url());
                 LocalBroadcastManager.getInstance(FsqVenuesApplication.getAppContext()).
                         sendBroadcast(new Intent(NetworkingUtils.REQUEST_FAILED_BROADCAST));
             }
         });
     }
 
+    @VenueTestable
     private Map<String, String> getQueryParameters(double myLat, double myLng) {
         Map<String, String> queryMap = new TreeMap<>();
         queryMap.put(NetworkingUtils.POSITION_QUERY_PARAM_KEY, LocationUtils.getFormattedLatitudeAndLongitude(myLat, myLng));

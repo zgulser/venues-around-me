@@ -10,8 +10,6 @@ import com.android.volley.toolbox.NetworkImageView;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 
-import java.util.List;
-
 import assignment.adyen.com.venuesaroundme.R;
 import assignment.adyen.com.venuesaroundme.databinding.VenuesActivityBinding;
 import assignment.adyen.com.venuesaroundme.location.LocationProviderProxy;
@@ -28,13 +26,13 @@ import assignment.adyen.com.venuesaroundme.ui.proxies.SearchUIProxy;
  * Created by Zeki 28/07/2016
  */
 
-public class MapsUIMediator implements UIItemMediator {
+public class UIMediatorImpl implements IUIMediator {
 
     private VenuesActivityBinding venuesActivityBinding;
     private VenueMarkerItemProxy venueMarkerItemProxy;
     private SearchUIProxy searchUIProxy;
 
-    public MapsUIMediator(VenuesActivityBinding venuesActivityBinding){
+    public UIMediatorImpl(VenuesActivityBinding venuesActivityBinding){
         this.venuesActivityBinding = venuesActivityBinding;
     }
 

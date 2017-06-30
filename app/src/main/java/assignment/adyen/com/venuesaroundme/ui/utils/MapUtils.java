@@ -24,6 +24,7 @@ import com.google.maps.android.SphericalUtil;
 import java.util.Map;
 
 import assignment.adyen.com.venuesaroundme.R;
+import assignment.adyen.com.venuesaroundme.application.FsqVenuesApplication;
 import assignment.adyen.com.venuesaroundme.location.LocationProviderProxy;
 import assignment.adyen.com.venuesaroundme.location.LocationUtils;
 import assignment.adyen.com.venuesaroundme.model.container.FsqVenueContainer;
@@ -46,9 +47,19 @@ public class MapUtils {
         }
     }
 
-    public static boolean isMyLocationVisible(LatLng myPosition, GoogleMap branchesMap){
+    public static void onMyLocationButtonClicked(LocationProviderProxy locationProviderProxy, GoogleMap venuesMap){
+        if(LocationProviderProxy.getMyPosition() != null){
+            if(!MapUtils.isMyLocationVisible(venuesMap)) {
+                venuesMap.moveCamera(CameraUpdateFactory.newLatLng(LocationProviderProxy.getMyPosition()));
+            }
+        } else {
+            locationProviderProxy.getMyLocationForTheFirstTime();
+        }
+    }
+
+    private static boolean isMyLocationVisible(GoogleMap branchesMap){
         LatLngBounds mapBounds = branchesMap.getProjection().getVisibleRegion().latLngBounds;
-        return mapBounds.contains(myPosition);
+        return mapBounds.contains(LocationProviderProxy.getMyPosition());
     }
 
     public static void setRadiusCircle(VenuesMapActivity venuesMapActivity, GoogleMap venuesMap) {

@@ -1,9 +1,12 @@
 package assignment.adyen.com.venuesaroundme.location;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.LocalBroadcastManager;
 
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationRequest;
@@ -11,7 +14,14 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.maps.android.SphericalUtil;
+
+import java.util.concurrent.Executor;
+
+import assignment.adyen.com.venuesaroundme.application.FsqVenuesApplication;
 
 /**
  * Created by Zeki on 25/06/2017.
@@ -56,22 +66,21 @@ public class LocationUtils {
         return locationRequest;
     }
 
-    public static LatLng getMyCurrentLocation(Context context, GoogleApiClient googleApiClient) {
-        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return null;
+    public static void getMyCurrentLocation(Context context, GoogleApiClient googleApiClient) {
+        if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.getFusedLocationProviderClient(context).getLastLocation().
+                addOnSuccessListener(new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        LocationProviderProxy.setMyPosition(new LatLng(location.getLatitude(), location.getLongitude()));
+                        LocalBroadcastManager.getInstance(FsqVenuesApplication.getAppContext()).sendBroadcast(new Intent(LocationUtils.MY_LOCATION_RECEIVED_FIRST_TIME));
+                    }
+                }).
+                addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {}
+                });
         }
-        Location location = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-        if(location != null){
-            return new LatLng(location.getLatitude(), location.getLongitude());
-        }
-        return null;
     }
 
     /**

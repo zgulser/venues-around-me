@@ -31,7 +31,7 @@ public class VenueRequestListenerProxy {
                 }
             } else if(actionReceived.equals(NetworkingUtils.REQUEST_FAILED_BROADCAST)){
                 Snackbar.make(venuesMapActivity.getWindow().getDecorView().getRootView(),
-                        "Branch load failed!", Snackbar.LENGTH_SHORT).show();
+                        venuesMapActivity.getString(R.string.venue_load_error), Snackbar.LENGTH_SHORT).show();
             }
         }
     };

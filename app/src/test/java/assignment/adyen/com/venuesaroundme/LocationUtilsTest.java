@@ -1,8 +1,12 @@
 package assignment.adyen.com.venuesaroundme;
 
+import android.test.suitebuilder.annotation.MediumTest;
+
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+import org.junit.runners.MethodSorters;
 
 import assignment.adyen.com.venuesaroundme.location.LocationUtils;
 import assignment.adyen.com.venuesaroundme.location.TestLocationProvider;
@@ -10,6 +14,8 @@ import assignment.adyen.com.venuesaroundme.location.TestLocationProvider;
 import static org.junit.Assert.*;
 
 @RunWith(JUnit4.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
+@MediumTest
 public class LocationUtilsTest {
 
     @Test

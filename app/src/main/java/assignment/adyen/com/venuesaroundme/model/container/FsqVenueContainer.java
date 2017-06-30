@@ -30,14 +30,14 @@ import assignment.adyen.com.venuesaroundme.networking.utils.NetworkingUtils;
 public class FsqVenueContainer implements IFsqVenueRequestObserver {
 
     private static FsqVenueContainer fsqVenueContainer;
-    private List<FsqExploredVenue> fsqVenueList;
+    private List<FsqExploredVenue> fsqVenueListBuffer;
     private List<FsqExploredVenue> fsqVenueListFilteredByRadius;
     private static boolean firstDownload = true;
 
     private FsqVenueContainer() {initRepoList();}
 
     private void initRepoList(){
-        fsqVenueList = new ArrayList<>();
+        fsqVenueListBuffer = new ArrayList<>();
         fsqVenueListFilteredByRadius = new ArrayList<>();
     }
 
@@ -51,6 +51,7 @@ public class FsqVenueContainer implements IFsqVenueRequestObserver {
 
     public List<FsqExploredVenue> getFsqVenueList(double myLocationLatitude, double myLocationLongitude) {
         if(firstDownload) {
+            fsqVenueListBuffer.clear();
             FsqVenueRequestController.getInstance().get(true, myLocationLatitude, myLocationLongitude);
             firstDownload = false;
         }
@@ -86,8 +87,21 @@ public class FsqVenueContainer implements IFsqVenueRequestObserver {
         }
 
         for(FsqExploredVenue fsqExploredVenue : fsqExploredResponseGroupItemVenues){
-            fsqVenueList.add(fsqExploredVenue);
+            fsqVenueListBuffer.add(fsqExploredVenue);
         }
+    }
+
+    private void filterVenuesByRadius(){
+        ArrayList<FsqExploredVenue> temporaryBackupList = new ArrayList<>();
+        LatLngBounds circularBound = LocationUtils.getBoundsOfCurrentRadius(LocationUtils.surroundingRadius);
+        for (FsqExploredVenue venue : fsqVenueListBuffer){
+            if(isInside(venue, circularBound)){
+                temporaryBackupList.add(venue);
+            }
+        }
+
+        fsqVenueListFilteredByRadius.addAll(temporaryBackupList);
+        temporaryBackupList = null;
     }
 
     private void sortVenueListByDistance(){
@@ -103,8 +117,7 @@ public class FsqVenueContainer implements IFsqVenueRequestObserver {
     public void refreshVenuesByRadius(int newRadius){
         if(newRadius > LocationUtils.surroundingRadius){
             firstDownload = true;
-            getFsqVenueList(LocationProviderProxy.getMyPosition().latitude,
-                            LocationProviderProxy.getMyPosition().longitude);
+            getFsqVenueList(LocationProviderProxy.getMyPosition().latitude, LocationProviderProxy.getMyPosition().longitude);
             LocationUtils.surroundingRadius = newRadius;
         } else {
             LocationUtils.surroundingRadius = newRadius;
@@ -112,20 +125,11 @@ public class FsqVenueContainer implements IFsqVenueRequestObserver {
         }
     }
 
-    private void filterVenuesByRadius(){
-        ArrayList<FsqExploredVenue> temporaryBackupList = new ArrayList<>();
-        LatLngBounds circularBound = LocationUtils.getBoundsOfCurrentRadius(LocationUtils.surroundingRadius);
-        for (FsqExploredVenue venue : fsqVenueList){
-            if(isInside(venue, circularBound)){
-                temporaryBackupList.add(venue);
-            }
-        }
-
-        fsqVenueListFilteredByRadius = temporaryBackupList;
-        temporaryBackupList = null;
-    }
-
     private boolean isInside(FsqExploredVenue venue, LatLngBounds circularBound){
         return circularBound.contains(new LatLng(venue.getLocation().getLatitude(), venue.getLocation().getLongitude()));
+    }
+
+    public List<FsqExploredVenue> getFsqVenueListFilteredByRadius() {
+        return fsqVenueListFilteredByRadius;
     }
 }

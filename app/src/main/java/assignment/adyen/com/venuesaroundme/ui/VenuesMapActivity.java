@@ -6,7 +6,6 @@ import android.databinding.DataBindingUtil;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
@@ -20,7 +19,6 @@ import android.widget.SeekBar;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.Marker;
 
@@ -34,8 +32,8 @@ import assignment.adyen.com.venuesaroundme.location.LocationUtils;
 import assignment.adyen.com.venuesaroundme.model.container.FsqVenueContainer;
 import assignment.adyen.com.venuesaroundme.model.entities.FsqExploredVenue;
 import assignment.adyen.com.venuesaroundme.permission.PermissionUtils;
-import assignment.adyen.com.venuesaroundme.ui.mediator.MapsUIMediator;
-import assignment.adyen.com.venuesaroundme.ui.mediator.UIItemMediator;
+import assignment.adyen.com.venuesaroundme.ui.mediator.UIMediatorImpl;
+import assignment.adyen.com.venuesaroundme.ui.mediator.IUIMediator;
 import assignment.adyen.com.venuesaroundme.ui.proxies.LocationChangeListenerProxy;
 import assignment.adyen.com.venuesaroundme.ui.proxies.LocationSettingCheckerProxy;
 import assignment.adyen.com.venuesaroundme.ui.proxies.PermissionHandlerProxy;
@@ -62,7 +60,7 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
     private LocationChangeListenerProxy locationListenerProxy;
     private LocationSettingCheckerProxy locationSettingCheckerProxy;
     private VenuesActivityBinding venuesActivityBinding;
-    private UIItemMediator uiItemMediator;
+    private IUIMediator uiItemMediator;
     private Bundle savedActivityInstance;
     private GoogleMap venuesMap;
     private Handler delayedOperationHandler;
@@ -169,7 +167,7 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
     }
 
     private void initUIMediator(){
-        uiItemMediator = new MapsUIMediator(venuesActivityBinding);
+        uiItemMediator = new UIMediatorImpl(venuesActivityBinding);
         uiItemMediator.onInjectSearchUIProxy(this, R.id.place_autocomplete_fragment);
     }
 
@@ -294,7 +292,7 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
         if (permissionHandlerProxy.isLocationPermissionGranted()) {
             setMapPropertiesForMyLocation();
         }
-        googleMap.setInfoWindowAdapter(new MapMarkerInfoAdapter(this));
+        googleMap.setInfoWindowAdapter(new VenueMarkerItemInfoAdapter(this));
         googleMap.setOnInfoWindowClickListener(this);
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
@@ -379,10 +377,7 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
 
     @Override
     public boolean onMyLocationButtonClick() {
-        if(!MapUtils.isMyLocationVisible(locationProviderProxy.getMyPosition(), venuesMap)){
-            venuesMap.moveCamera(CameraUpdateFactory.newLatLng(locationProviderProxy.getMyPosition()));
-        }
-
+        MapUtils.onMyLocationButtonClicked(locationProviderProxy, venuesMap);
         return false;
     }
 

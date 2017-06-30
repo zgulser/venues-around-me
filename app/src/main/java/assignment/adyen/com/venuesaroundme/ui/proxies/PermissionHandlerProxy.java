@@ -4,6 +4,7 @@ import android.content.pm.PackageManager;
 import android.support.v4.content.ContextCompat;
 
 import assignment.adyen.com.venuesaroundme.R;
+import assignment.adyen.com.venuesaroundme.networking.VenueTestable;
 import assignment.adyen.com.venuesaroundme.permission.GetLocationGrant;
 import assignment.adyen.com.venuesaroundme.permission.Grant;
 import assignment.adyen.com.venuesaroundme.permission.PermissionBroker;
@@ -22,7 +23,6 @@ public class PermissionHandlerProxy {
     }
 
     public void checkLocationPermissionGranted(){
-
         locationPermissionGranted = (ContextCompat.checkSelfPermission(venuesMapActivity,
                 android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED);
         if (!locationPermissionGranted)  {
@@ -32,6 +32,7 @@ public class PermissionHandlerProxy {
         }
     }
 
+    @VenueTestable
     private void handleLocationPermission() {
         Grant grant = new Grant(android.Manifest.permission.ACCESS_FINE_LOCATION,
                 venuesMapActivity.getResources().getString(R.string.permission_exp_location));

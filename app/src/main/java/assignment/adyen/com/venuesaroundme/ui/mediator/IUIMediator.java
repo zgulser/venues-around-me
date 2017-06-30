@@ -14,10 +14,10 @@ import assignment.adyen.com.venuesaroundme.ui.proxies.SearchUIProxy;
 import assignment.adyen.com.venuesaroundme.ui.proxies.VenueMarkerItemProxy;
 
 /**
- * Created by Zeki
+ * Created by Zeki on 28/07/2017
  */
 
-public interface UIItemMediator {
+public interface IUIMediator {
     void onMyLocationReceivedForTheFirstTime();
     void onNavigateToListView(BottomSheetBehavior bottomSheetBehavior);
     void onNavigateToMapView();

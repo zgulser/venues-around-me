@@ -88,15 +88,8 @@ public class LocationProviderProxy implements GoogleApiClient.ConnectionCallback
         }
     }
 
-    private void getMyLocationForTheFirstTime(){
-        myPosition = LocationUtils.getMyCurrentLocation(FsqVenuesApplication.getAppContext(), googleApiClient);
-        if(myPosition != null) {
-            LocalBroadcastManager.getInstance(FsqVenuesApplication.getAppContext()).sendBroadcast(
-                    new Intent(LocationUtils.MY_LOCATION_RECEIVED_FIRST_TIME));
-        } else {
-            LocalBroadcastManager.getInstance(FsqVenuesApplication.getAppContext()).sendBroadcast(
-                    new Intent(LocationUtils.MY_LOCATION_RECEIVED_NULL));
-        }
+    public void getMyLocationForTheFirstTime(){
+        LocationUtils.getMyCurrentLocation(FsqVenuesApplication.getAppContext(), googleApiClient);
     }
 
     private void sendEventToStartLocationUpdates(){
@@ -183,6 +176,10 @@ public class LocationProviderProxy implements GoogleApiClient.ConnectionCallback
 
     public static LatLng getMyPosition() {
         return myPosition;
+    }
+
+    public static void setMyPosition(LatLng myPosition) {
+        LocationProviderProxy.myPosition = myPosition;
     }
 
     public boolean isFirstLocationRequestReceived() {

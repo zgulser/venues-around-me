@@ -34,7 +34,6 @@ public class LocationSettingCheckerProxy implements ILocationSettingChecker {
     private VenuesMapActivity venuesMapActivity;
     private Snackbar locationSettingsDisabledSnackBar;
     private List<ILocationSettingObserver> locationSettingObserverList;
-
     private OnSuccessListener onSuccessListener = new OnSuccessListener() {
         @Override
         public void onSuccess(Object o) {

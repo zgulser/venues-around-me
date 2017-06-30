@@ -9,15 +9,14 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 
-import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
-import com.google.android.gms.location.places.ui.PlaceSelectionListener;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.Marker;
 
 import assignment.adyen.com.venuesaroundme.R;
 import assignment.adyen.com.venuesaroundme.ui.VenuesMapActivity;
+import assignment.adyen.com.venuesaroundme.ui.specialobjects.CustomPlaceSelectionListener;
+import assignment.adyen.com.venuesaroundme.ui.specialobjects.CustomTextWatcher;
 
 /**
  * Created by Zeki on 28/02/2017.
@@ -58,20 +57,27 @@ public class SearchUIProxy implements View.OnClickListener{
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
                 activity.getFragmentManager().findFragmentById(placesFragmentId);
 
+        initPlaceSelectionListener(autocompleteFragment);
         initVenuesSearchButton(autocompleteFragment);
         initPlacesClearButton(autocompleteFragment);
         initEdittextListener(autocompleteFragment);
     }
 
+    private void initPlaceSelectionListener(PlaceAutocompleteFragment autocompleteFragment){
+        AutocompleteFilter typeFilter = new AutocompleteFilter.Builder().setTypeFilter(
+                AutocompleteFilter.TYPE_FILTER_ADDRESS).build();
+        autocompleteFragment.setFilter(typeFilter);
+        autocompleteFragment.setOnPlaceSelectedListener(new CustomPlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                //TODO: implement this when you add search feature with a custom content provider
+            }
+        });
+    }
+
     private void initEdittextListener(PlaceAutocompleteFragment autocompleteFragment){
         searchEditText = (EditText) autocompleteFragment.getView().findViewById(R.id.place_autocomplete_search_input);
-        searchEditText.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-
+        searchEditText.addTextChangedListener(new CustomTextWatcher() {
             @Override
             public void afterTextChanged(Editable editable) {
                 clearSearchButton.setVisibility(View.VISIBLE);
