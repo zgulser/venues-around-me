@@ -5,7 +5,6 @@ import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.os.Message;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
@@ -21,11 +20,7 @@ import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.maps.model.LatLng;
 
-import java.lang.ref.WeakReference;
-
 import assignment.adyen.com.venuesaroundme.application.FsqVenuesApplication;
-import assignment.adyen.com.venuesaroundme.ui.MapUtils;
-import assignment.adyen.com.venuesaroundme.ui.VenuesMapActivity;
 
 /**
  * Created by Zeki
@@ -38,7 +33,7 @@ public class LocationProviderProxy implements GoogleApiClient.ConnectionCallback
     private FusedLocationProviderClient fusedLocationProviderClient;
     private GoogleApiClient googleApiClient;
     private ILocationSettingChecker locationSettingChecker;
-    private LatLng myPosition;
+    private static LatLng myPosition;
     private boolean isFirstLocationRequestReceived;
 
     public final LocationCallback myLocationCallback = new LocationCallback() {
@@ -186,7 +181,7 @@ public class LocationProviderProxy implements GoogleApiClient.ConnectionCallback
         }
     }
 
-    public LatLng getMyPosition() {
+    public static LatLng getMyPosition() {
         return myPosition;
     }
 

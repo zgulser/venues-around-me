@@ -20,7 +20,7 @@ import assignment.adyen.com.venuesaroundme.R;
 import assignment.adyen.com.venuesaroundme.ui.VenuesMapActivity;
 
 /**
- * Created by Backbase R&D B.V on 28/02/2017.
+ * Created by Zeki on 28/02/2017.
  */
 
 public class SearchUIProxy implements View.OnClickListener{

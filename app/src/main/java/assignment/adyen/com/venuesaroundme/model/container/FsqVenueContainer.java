@@ -3,12 +3,18 @@ package assignment.adyen.com.venuesaroundme.model.container;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.maps.android.SphericalUtil;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
 import assignment.adyen.com.venuesaroundme.application.FsqVenuesApplication;
+import assignment.adyen.com.venuesaroundme.location.LocationProviderProxy;
+import assignment.adyen.com.venuesaroundme.location.LocationUtils;
 import assignment.adyen.com.venuesaroundme.model.entities.FsqExploredVenueGroup;
 import assignment.adyen.com.venuesaroundme.model.entities.FsqExploredVenueItem;
 import assignment.adyen.com.venuesaroundme.model.entities.FsqExploredVenue;
@@ -25,12 +31,14 @@ public class FsqVenueContainer implements IFsqVenueRequestObserver {
 
     private static FsqVenueContainer fsqVenueContainer;
     private List<FsqExploredVenue> fsqVenueList;
+    private List<FsqExploredVenue> fsqVenueListFilteredByRadius;
     private static boolean firstDownload = true;
 
     private FsqVenueContainer() {initRepoList();}
 
     private void initRepoList(){
         fsqVenueList = new ArrayList<>();
+        fsqVenueListFilteredByRadius = new ArrayList<>();
     }
 
     public static synchronized FsqVenueContainer getInstance() {
@@ -41,18 +49,19 @@ public class FsqVenueContainer implements IFsqVenueRequestObserver {
         return fsqVenueContainer;
     }
 
-    public List<FsqExploredVenue> getFsqVenueList() {
+    public List<FsqExploredVenue> getFsqVenueList(double myLocationLatitude, double myLocationLongitude) {
         if(firstDownload) {
-            FsqVenueRequestController.getInstance().get(true);
+            FsqVenueRequestController.getInstance().get(true, myLocationLatitude, myLocationLongitude);
             firstDownload = false;
         }
 
-        return fsqVenueList;
+        return fsqVenueListFilteredByRadius;
     }
 
     @Override
-    public void onFsqVenueListDownloaded(FsqVenueRequestRoot requestResult) {
-        addFsqVenueItemToTheList(requestResult);
+    public void onFsqVenueListDownloaded(FsqVenueRequestRoot response) {
+        extractAndAddVenueItemsFromResponse(response);
+        filterVenuesByRadius();
         sortVenueListByDistance();
 
         LocalBroadcastManager.getInstance(FsqVenuesApplication.getAppContext()).
@@ -65,15 +74,15 @@ public class FsqVenueContainer implements IFsqVenueRequestObserver {
      *
      * @param requestResult
      */
-    private void addFsqVenueItemToTheList(FsqVenueRequestRoot requestResult){
+    private void extractAndAddVenueItemsFromResponse(FsqVenueRequestRoot requestResult){
         List<FsqExploredVenueItem> fsqExploredResponseGroupItems = new ArrayList<>();
-        for (FsqExploredVenueGroup fsqExploredVenueGroup : requestResult.getFsqExploredResponse().getFsqExploredResponseGroups()){
-            fsqExploredResponseGroupItems.addAll(fsqExploredVenueGroup.getFsqExploredResponseGroupItems());
+        for (FsqExploredVenueGroup fsqExploredVenueGroup : requestResult.getResponse().getGroups()){
+            fsqExploredResponseGroupItems.addAll(fsqExploredVenueGroup.getItems());
         }
 
         List<FsqExploredVenue> fsqExploredResponseGroupItemVenues = new ArrayList<>();
         for(FsqExploredVenueItem fsqExploredVenueItem : fsqExploredResponseGroupItems){
-            fsqExploredResponseGroupItemVenues.add(fsqExploredVenueItem.getFsqExploredResponseGroupItemVenue());
+            fsqExploredResponseGroupItemVenues.add(fsqExploredVenueItem.getVenue());
         }
 
         for(FsqExploredVenue fsqExploredVenue : fsqExploredResponseGroupItemVenues){
@@ -82,12 +91,41 @@ public class FsqVenueContainer implements IFsqVenueRequestObserver {
     }
 
     private void sortVenueListByDistance(){
-        Collections.sort(fsqVenueList, new Comparator<FsqExploredVenue>() {
+        Collections.sort(fsqVenueListFilteredByRadius, new Comparator<FsqExploredVenue>() {
             @Override
             public int compare(FsqExploredVenue fsqExploredVenue, FsqExploredVenue t1) {
                 return Integer.valueOf(fsqExploredVenue.getLocation().getDistance()) -
                         Integer.valueOf(t1.getLocation().getDistance());
             }
         });
+    }
+
+    public void refreshVenuesByRadius(int newRadius){
+        if(newRadius > LocationUtils.surroundingRadius){
+            firstDownload = true;
+            getFsqVenueList(LocationProviderProxy.getMyPosition().latitude,
+                            LocationProviderProxy.getMyPosition().longitude);
+            LocationUtils.surroundingRadius = newRadius;
+        } else {
+            LocationUtils.surroundingRadius = newRadius;
+            filterVenuesByRadius();
+        }
+    }
+
+    private void filterVenuesByRadius(){
+        ArrayList<FsqExploredVenue> temporaryBackupList = new ArrayList<>();
+        LatLngBounds circularBound = LocationUtils.getBoundsOfCurrentRadius(LocationUtils.surroundingRadius);
+        for (FsqExploredVenue venue : fsqVenueList){
+            if(isInside(venue, circularBound)){
+                temporaryBackupList.add(venue);
+            }
+        }
+
+        fsqVenueListFilteredByRadius = temporaryBackupList;
+        temporaryBackupList = null;
+    }
+
+    private boolean isInside(FsqExploredVenue venue, LatLngBounds circularBound){
+        return circularBound.contains(new LatLng(venue.getLocation().getLatitude(), venue.getLocation().getLongitude()));
     }
 }

@@ -2,7 +2,6 @@ package assignment.adyen.com.venuesaroundme.ui.mediator;
 
 import android.os.Build;
 import android.support.design.widget.BottomSheetBehavior;
-import android.support.v7.widget.LinearLayoutCompat;
 import android.transition.TransitionManager;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -14,26 +13,25 @@ import com.google.android.gms.maps.model.Marker;
 import java.util.List;
 
 import assignment.adyen.com.venuesaroundme.R;
-import assignment.adyen.com.venuesaroundme.application.FsqVenuesApplication;
 import assignment.adyen.com.venuesaroundme.databinding.VenuesActivityBinding;
+import assignment.adyen.com.venuesaroundme.location.LocationProviderProxy;
 import assignment.adyen.com.venuesaroundme.location.LocationUtils;
 import assignment.adyen.com.venuesaroundme.model.container.FsqVenueContainer;
 import assignment.adyen.com.venuesaroundme.model.entities.FsqExploredVenue;
-import assignment.adyen.com.venuesaroundme.model.entities.FsqExploredVenuePhoto;
 import assignment.adyen.com.venuesaroundme.networking.imagerequests.VolleyImageRequestController;
-import assignment.adyen.com.venuesaroundme.ui.MapUtils;
+import assignment.adyen.com.venuesaroundme.ui.utils.MapUtils;
 import assignment.adyen.com.venuesaroundme.ui.VenuesMapActivity;
-import assignment.adyen.com.venuesaroundme.ui.proxies.MapUIItemProxy;
+import assignment.adyen.com.venuesaroundme.ui.proxies.VenueMarkerItemProxy;
 import assignment.adyen.com.venuesaroundme.ui.proxies.SearchUIProxy;
 
 /**
- * Created by Zeki
+ * Created by Zeki 28/07/2016
  */
 
 public class MapsUIMediator implements UIItemMediator {
 
     private VenuesActivityBinding venuesActivityBinding;
-    private MapUIItemProxy mapUIItemProxy;
+    private VenueMarkerItemProxy venueMarkerItemProxy;
     private SearchUIProxy searchUIProxy;
 
     public MapsUIMediator(VenuesActivityBinding venuesActivityBinding){
@@ -41,7 +39,9 @@ public class MapsUIMediator implements UIItemMediator {
     }
 
     @Override
-    public void onMyLocationClicked() {}
+    public void onMyLocationReceivedForTheFirstTime() {
+        venuesActivityBinding.radiusTunerSeekBar.setVisibility(View.VISIBLE);
+    }
 
     @Override
     public void onNavigateToListView(BottomSheetBehavior bottomSheetBehavior) {
@@ -72,46 +72,48 @@ public class MapsUIMediator implements UIItemMediator {
     }
 
     private void closeInfoViews(){
-        for(Marker m : mapUIItemProxy.getMarkerList()){
+        for(Marker m : venueMarkerItemProxy.getMarkerList()){
             m.hideInfoWindow();
         }
     }
 
     private void findMarkerAndOpenInfoWindow(FsqExploredVenue fsqExploredVenue){
-        for(Marker marker : mapUIItemProxy.getMarkerList()){
+        for(Marker marker : venueMarkerItemProxy.getMarkerList()){
             if(marker.getTag() == fsqExploredVenue){
                 marker.showInfoWindow();
-                MapUtils.putCameraToPosition(false, mapUIItemProxy.getVenueMap(), marker.getPosition(), null);
+                MapUtils.putCameraToPosition(false, venueMarkerItemProxy.getVenueMap(), marker.getPosition(), null);
             }
         }
     }
 
     @Override
     public void onPopulateMapWithVenueMarkers(){
-        for(FsqExploredVenue venue : FsqVenueContainer.getInstance().getFsqVenueList()){
-            mapUIItemProxy.addMarkerToMap(venue);
+        double myLat = LocationProviderProxy.getMyPosition().latitude;
+        double myLng = LocationProviderProxy.getMyPosition().longitude;
+        for(FsqExploredVenue venue : FsqVenueContainer.getInstance().getFsqVenueList(myLat, myLng)){
+            venueMarkerItemProxy.addMarkerToMap(venue);
         }
     }
 
     @Override
     public void onClearMap() {
-        cleanBranchesOnMap();
+        cleanVenuesOnMap();
         cleanMarkerItems();
     }
 
-    private void cleanBranchesOnMap(){
-        if(mapUIItemProxy.getVenueMap() != null){
-            MapUtils.clearBranchesOnMap(mapUIItemProxy.getVenueMap());
+    private void cleanVenuesOnMap(){
+        if(venueMarkerItemProxy.getVenueMap() != null){
+            MapUtils.clearVenuesOnMap(venueMarkerItemProxy.getVenueMap());
         }
     }
 
     private void cleanMarkerItems(){
-        mapUIItemProxy.getMarkerList().clear();
+        venueMarkerItemProxy.getMarkerList().clear();
     }
 
     @Override
-    public void onInjectMapUIItemProxy(GoogleMap venuesMap) {
-        mapUIItemProxy = new MapUIItemProxy(venuesMap);
+    public void onInjectVenueMarkerItemProxy(GoogleMap venuesMap) {
+        venueMarkerItemProxy = new VenueMarkerItemProxy(venuesMap);
     }
 
     @Override
@@ -129,18 +131,40 @@ public class MapsUIMediator implements UIItemMediator {
         venuesActivityBinding.bottomSheetContent.venueRatingBar.setRating(Float.parseFloat(venue.getRating())/2.0f);
         venuesActivityBinding.bottomSheetContent.venueRatingBottomSheet.setText(venue.getRating());
         venuesActivityBinding.bottomSheetContent.venueAddressBottomSheet.setText(venue.getLocation().getAddress());
-        venuesActivityBinding.bottomSheetContent.venueHoursBottomSheet.setText(venue.getHours().isOpen()
-                        ? venuesActivityBinding.getRoot().getResources().getString(R.string.venue_open)
-                        : venuesActivityBinding.getRoot().getResources().getString(R.string.venue_close));
+        setVenueHoursValue(venue);
         loadVenueImages(venue);
     }
 
+    private void setVenueHoursValue(FsqExploredVenue venue){
+        if (venue.getHours() != null) {
+            venuesActivityBinding.bottomSheetContent.venueHoursBottomSheet.setText(venue.getHours().isOpen()
+                    ? venuesActivityBinding.getRoot().getResources().getString(R.string.venue_open) :
+                    venuesActivityBinding.getRoot().getResources().getString(R.string.venue_close));
+        }
+    }
+
+    @Override
+    public void updateVenueMarkerItems(){
+        venueMarkerItemProxy.updateVenueMarkerItemsTitle();
+    }
+
+    /**
+     *
+     * Desc: Just a mock method to populate scroll view with images
+     *
+     * @param venue
+     */
     private void loadVenueImages(FsqExploredVenue venue){
         for (int i=0; i < 20; i++){
             loadVenueImage();
         }
     }
 
+    /**
+     *
+     * Desc: Part of the mock method above
+     *
+     */
     private void loadVenueImage(){
         NetworkImageView imageView = new NetworkImageView(venuesActivityBinding.getRoot().getContext());
         imageView.setDefaultImageResId(R.drawable.london);
@@ -152,10 +176,4 @@ public class MapsUIMediator implements UIItemMediator {
         imageView.setLayoutParams(params);
         venuesActivityBinding.bottomSheetContent.horizontalScrollLinear.addView(imageView);
     }
-
-    @Override
-    public List<Marker> onGetMarkers() {
-        return mapUIItemProxy.getMarkerList();
-    }
-
 }

@@ -11,5 +11,5 @@ public interface ILocationSettingChecker {
     void addLocationSettingRequestObserver(ILocationSettingObserver locationSettingObserver);
     void removeLocationSettingRequestObserver(ILocationSettingObserver locationSettingObserver);
     void showLocationSettingError();
-    void hideMyLocationError();
+    void hideLocationSettingError();
 }

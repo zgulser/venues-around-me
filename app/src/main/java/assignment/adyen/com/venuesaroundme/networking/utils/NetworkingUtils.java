@@ -13,6 +13,7 @@ public class NetworkingUtils {
     public static final String CLIENT_SECRET_QUERY_PARAM_KEY = "client_secret";
     public static final String CLIENT_SECRET_QUERY_PARAM_VALUE="1VBJW5L0OWAQ0G134WVQSYDCOZN0OWBOXBPG5TUMWQAFBR44";
     public static final String VERSION_QUERY_PARAM_KEY = "v";
+    public static final String RADIUS_QUERY_PARAM_KEY = "radius";
     public static final String VERSION_QUERY_PARAM_VALUE="20170630";
     public static final String REQUEST_FAILED_BROADCAST = "com.zekigu.venues.request.failed_broadcast";
     public static final String REQUEST_SUCCEDED_BROADCAST = "com.zekigu.testapp.request.succeeded_broadcast";

@@ -11,12 +11,16 @@ import java.util.List;
 public class FsqExploredVenueItem {
 
     @SerializedName("venue")
-    FsqExploredVenue fsqExploredResponseGroupItemVenue;
+    FsqExploredVenue venue;
 
     @SerializedName("tips")
-    List<FsqExploredVenueItemTip> fsqExploredResponseGroupItemTips;
+    List<FsqExploredVenueItemTip> tips;
 
-    public FsqExploredVenue getFsqExploredResponseGroupItemVenue(){
-        return fsqExploredResponseGroupItemVenue;
+    public FsqExploredVenue getVenue(){
+        return venue;
+    }
+
+    public List<FsqExploredVenueItemTip> getTips() {
+        return tips;
     }
 }

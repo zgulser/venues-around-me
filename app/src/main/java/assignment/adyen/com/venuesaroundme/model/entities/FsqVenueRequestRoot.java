@@ -9,9 +9,9 @@ import com.google.gson.annotations.SerializedName;
 public class FsqVenueRequestRoot {
 
     @SerializedName("response")
-    FsqExploredVenueResponse fsqExploredResponse;
+    FsqExploredVenueResponse response;
 
-    public FsqExploredVenueResponse getFsqExploredResponse() {
-        return fsqExploredResponse;
+    public FsqExploredVenueResponse getResponse() {
+        return response;
     }
 }

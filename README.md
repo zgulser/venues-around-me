@@ -7,6 +7,12 @@ shows the venues around you on a fancy UI
 
 2. Glide might also be used instead of Volley to deal with images
 
-3. Onboarding screen was left out intentionally
+# Improvement points
 
+1. Onboarding screen
 
+2. Search functionality
+
+3. Dagger might be added to manage dependencies
+
+#

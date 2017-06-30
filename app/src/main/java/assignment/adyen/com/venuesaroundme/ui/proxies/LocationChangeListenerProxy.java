@@ -10,7 +10,7 @@ import assignment.adyen.com.venuesaroundme.location.LocationUtils;
 import assignment.adyen.com.venuesaroundme.ui.VenuesMapActivity;
 
 /**
- * Created by Zeki
+ * Created by Zeki on 27/06/2017.
  */
 
 public class LocationChangeListenerProxy {
@@ -20,14 +20,14 @@ public class LocationChangeListenerProxy {
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
             if (action.equals(LocationUtils.MY_LOCATION_RECEIVED)) {
-                venuesMapActivity.updateMapMarkersWhenMyLocationUpdated();
+                venuesMapActivity.onMyLocationChanged();
             } else if (action.equals(LocationUtils.MY_LOCATION_RECEIVED_NULL)) {
                 if(!venuesMapActivity.getLocationProviderProxy().isFirstLocationRequestReceived()){
                     venuesMapActivity.getLocationSettingCheckerProxy().showLocationSettingError();
                     venuesMapActivity.getLocationProviderProxy().getGoogleApiClient().connect();
                 }
             } else if (action.equals(LocationUtils.MY_LOCATION_RECEIVED_FIRST_TIME)) {
-                venuesMapActivity.updateViewWhenMyLocationReceivedFirstTime(); // center my pos
+                venuesMapActivity.onMyLocationReceivedFirstTime(); // center my pos
             }
         }
     };

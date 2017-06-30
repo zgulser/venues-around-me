@@ -18,7 +18,7 @@ import assignment.adyen.com.venuesaroundme.model.entities.FsqExploredVenue;
 import assignment.adyen.com.venuesaroundme.networking.imagerequests.VolleyImageRequestController;
 
 /**
- * Created by Zeki
+ * Created by Zeki on 27/06/2017.
  */
 
 public class VenueItemAdapter extends RecyclerView.Adapter<VenueItemAdapter.VenueItemHolder>{

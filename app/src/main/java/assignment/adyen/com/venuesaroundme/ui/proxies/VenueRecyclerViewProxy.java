@@ -9,7 +9,7 @@ import assignment.adyen.com.venuesaroundme.ui.VenueItemAdapter;
 import assignment.adyen.com.venuesaroundme.ui.VenuesMapActivity;
 
 /**
- * Created by Zeki
+ * Created by Zeki on 27/06/2017.
  */
 
 public class VenueRecyclerViewProxy {
@@ -31,7 +31,9 @@ public class VenueRecyclerViewProxy {
     }
 
     public void setRecyclerViewAdapter(){
-        venuesItemAdapter = new VenueItemAdapter(venuesMapActivity, FsqVenueContainer.getInstance().getFsqVenueList());
+        double myLat = venuesMapActivity.getLocationProviderProxy().getMyPosition().latitude;
+        double myLng = venuesMapActivity.getLocationProviderProxy().getMyPosition().longitude;
+        venuesItemAdapter = new VenueItemAdapter(venuesMapActivity, FsqVenueContainer.getInstance().getFsqVenueList(myLat, myLng));
         venueListRecyclerView.setAdapter(venuesItemAdapter);
     }
 

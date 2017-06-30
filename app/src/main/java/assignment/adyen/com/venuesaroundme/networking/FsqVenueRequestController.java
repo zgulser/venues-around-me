@@ -23,7 +23,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  * Created by Backbase R&D B.V on 25/06/2017.
  */
 
-public class FsqVenueRequestController implements IWebRequestContract{
+public class FsqVenueRequestController implements IVenueRequestContract {
 
     private static FsqVenueRequestController fsqVenueRequestController;
     private IFsqVenueExplorerService fsqVenueExplorerService;
@@ -68,8 +68,8 @@ public class FsqVenueRequestController implements IWebRequestContract{
     }
 
     @Override
-    public void get(boolean isAsync) {
-        Call call = fsqVenueExplorerService.listFsqVenues(getQueryParameters());
+    public void get(boolean isAsync, double myLat, double myLng) {
+        Call call = fsqVenueExplorerService.listFsqVenues(getQueryParameters(myLat, myLng));
         call.enqueue(new Callback<FsqVenueRequestRoot>() { // async retrofit request
             @Override
             public void onResponse(Call<FsqVenueRequestRoot> call, Response<FsqVenueRequestRoot> response) {
@@ -92,15 +92,13 @@ public class FsqVenueRequestController implements IWebRequestContract{
         });
     }
 
-    private Map<String, String> getQueryParameters() {
+    private Map<String, String> getQueryParameters(double myLat, double myLng) {
         Map<String, String> queryMap = new TreeMap<>();
-        queryMap.put(NetworkingUtils.POSITION_QUERY_PARAM_KEY,
-                LocationUtils.getFormattedLatitudeAndLongitude(
-                      TestLocationProvider.getInstance().testLatitude,
-                      TestLocationProvider.getInstance().testLongitude));
+        queryMap.put(NetworkingUtils.POSITION_QUERY_PARAM_KEY, LocationUtils.getFormattedLatitudeAndLongitude(myLat, myLng));
         queryMap.put(NetworkingUtils.CLIENT_ID_QUERY_PARAM_KEY, NetworkingUtils.CLIENT_ID_QUERY_PARAM_VALUE);
         queryMap.put(NetworkingUtils.CLIENT_SECRET_QUERY_PARAM_KEY, NetworkingUtils.CLIENT_SECRET_QUERY_PARAM_VALUE);
         queryMap.put(NetworkingUtils.VERSION_QUERY_PARAM_KEY, NetworkingUtils.VERSION_QUERY_PARAM_VALUE);
+        queryMap.put(NetworkingUtils.RADIUS_QUERY_PARAM_KEY, String.valueOf(LocationUtils.surroundingRadius));
         return queryMap;
     }
 

@@ -10,10 +10,17 @@ import java.util.List;
 
 public class FsqExploredVenueResponse {
 
-    @SerializedName("groups")
-    List<FsqExploredVenueGroup> fsqExploredResponseGroups;
+    @SerializedName("suggestedRadius")
+    int suggestedRadius;
 
-    public List<FsqExploredVenueGroup> getFsqExploredResponseGroups(){
-        return fsqExploredResponseGroups;
+    @SerializedName("groups")
+    List<FsqExploredVenueGroup> groups;
+
+    public int getSuggestedRadius() {
+        return suggestedRadius;
+    }
+
+    public List<FsqExploredVenueGroup> getGroups(){
+        return groups;
     }
 }

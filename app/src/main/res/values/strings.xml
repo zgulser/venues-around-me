@@ -106,6 +106,8 @@
     <string name="search_hint">Search</string>
     <string name="search_hint_extended">Search for a place or address</string>
 
+    <string name="radius_text" formatted="true">radius: %dkm</string>
+
     <string name="venue_open">Open</string>
     <string name="venue_close">Close</string>
 </resources>

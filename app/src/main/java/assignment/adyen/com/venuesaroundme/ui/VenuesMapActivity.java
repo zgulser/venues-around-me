@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Message;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomSheetBehavior;
@@ -15,6 +16,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -29,6 +31,7 @@ import assignment.adyen.com.venuesaroundme.application.AppUtils;
 import assignment.adyen.com.venuesaroundme.databinding.VenuesActivityBinding;
 import assignment.adyen.com.venuesaroundme.location.LocationProviderProxy;
 import assignment.adyen.com.venuesaroundme.location.LocationUtils;
+import assignment.adyen.com.venuesaroundme.model.container.FsqVenueContainer;
 import assignment.adyen.com.venuesaroundme.model.entities.FsqExploredVenue;
 import assignment.adyen.com.venuesaroundme.permission.PermissionUtils;
 import assignment.adyen.com.venuesaroundme.ui.mediator.MapsUIMediator;
@@ -39,12 +42,20 @@ import assignment.adyen.com.venuesaroundme.ui.proxies.PermissionHandlerProxy;
 import assignment.adyen.com.venuesaroundme.ui.proxies.SearchUIProxy;
 import assignment.adyen.com.venuesaroundme.ui.proxies.VenueRecyclerViewProxy;
 import assignment.adyen.com.venuesaroundme.ui.proxies.VenueRequestListenerProxy;
+import assignment.adyen.com.venuesaroundme.ui.specialobjects.CustomGoogleMapCancellableCallback;
+import assignment.adyen.com.venuesaroundme.ui.specialobjects.CustomSeekBarChangedListener;
+import assignment.adyen.com.venuesaroundme.ui.utils.AnimationUtils;
+import assignment.adyen.com.venuesaroundme.ui.utils.MapUtils;
+
+/**
+ * Created by Zeki on 27/06/2017.
+ */
 
 public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCallback,
         GoogleMap.OnInfoWindowClickListener, GoogleMap.OnCameraMoveListener, GoogleMap.OnMyLocationButtonClickListener,
         SearchUIProxy.SearchActionsListener, VenueItemAdapter.IListItemClickListener{
 
-    private VenueRecyclerViewProxy venueListProxy;
+    private VenueRecyclerViewProxy venueRecyclerViewProxy;
     private VenueRequestListenerProxy venueRequestListenerProxy;
     private PermissionHandlerProxy permissionHandlerProxy;
     private LocationProviderProxy locationProviderProxy;
@@ -53,39 +64,11 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
     private VenuesActivityBinding venuesActivityBinding;
     private UIItemMediator uiItemMediator;
     private Bundle savedActivityInstance;
-    private Handler delayedEventHandler;
     private GoogleMap venuesMap;
+    private Handler delayedOperationHandler;
     private BottomSheetBehavior venueItemBottomSheetBehaviour;
-
-    public void updateViewWhenMyLocationReceivedFirstTime(){
-        locationProviderProxy.setFirstLocationRequestReceived(true);
-        locationSettingCheckerProxy.hideMyLocationError();
-
-        MapUtils.putCameraToPosition(true, venuesMap, locationProviderProxy.getMyPosition(), new GoogleMap.CancelableCallback() {
-            @Override
-            public void onFinish() {
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        delayedEventHandler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                MapUtils.refreshMapWithBranchesByArea(VenuesMapActivity.this.getApplicationContext(), venuesMap);
-                            }
-                        }, 2000);
-                    }
-                }).start();
-            }
-            @Override
-            public void onCancel() {}
-        });
-    }
-
-    public void updateMapMarkersWhenMyLocationUpdated(){
-        for (Marker marker : uiItemMediator.onGetMarkers()){
-            //TODO: update marker item when my location changes
-        }
-    }
+    private final int RADIUS_UPDATE_MESSAGE_ID = 1;
+    private static final String RADIUS_VALUE_MESSAGE_KEY = "seekbarProgress";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,17 +78,13 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
         savedActivityInstance = savedInstanceState;
 
         initMapView();
-        initDelayedEventHandler();
         initRestOfTheActivity();
+        initDelayedOperationHandler();
     }
 
     private void initMapView() {
         venuesActivityBinding.map.onCreate(savedActivityInstance);
         venuesActivityBinding.map.getMapAsync(this);
-    }
-
-    private void initDelayedEventHandler(){
-        delayedEventHandler = new Handler(Looper.getMainLooper(), null);
     }
 
     private void initRestOfTheActivity(){
@@ -117,6 +96,23 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
         }
     }
 
+    private void initDelayedOperationHandler(){
+        delayedOperationHandler = new Handler(getMainLooper(), new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message message) {
+                switch (message.what){
+                    case RADIUS_UPDATE_MESSAGE_ID:
+                        int newRadius = message.getData().getInt(RADIUS_VALUE_MESSAGE_KEY);
+                        FsqVenueContainer.getInstance().refreshVenuesByRadius(newRadius);
+                        break;
+                    default:
+                        break;
+                }
+                return false;
+            }
+        });
+    }
+
     private void initUIElementsAndProxies() {
         initUIElements();
         initProxies();
@@ -124,8 +120,9 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
 
     private void initUIElements() {
         initVenueItemBottomSheetBehaviour();
+        initSeekBar();
         initUIMediator();
-        initVenueListRecyclerView();
+        initVenueRecyclerView();
     }
 
     private void initProxies(){
@@ -138,6 +135,37 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
         venueItemBottomSheetBehaviour = BottomSheetBehavior.from(venuesActivityBinding.venueItemBottomSheet);
         venueItemBottomSheetBehaviour.setState(BottomSheetBehavior.STATE_COLLAPSED);
         venueItemBottomSheetBehaviour.setPeekHeight(0);
+    }
+
+    private void initSeekBar(){
+        venuesActivityBinding.radiusTunerSeekBar.setVisibility(View.GONE);
+        venuesActivityBinding.radiusTunerSeekBar.setProgress(LocationUtils.surroundingRadius/1000);
+        venuesActivityBinding.radiusTunerSeekBar.setOnSeekBarChangeListener(new CustomSeekBarChangedListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean changedByUser) {
+                if(changedByUser) {
+                    updateSeekBarRelatedUI(progress);
+                    updateRadiusByDelayedHandler(progress);
+                }
+            }
+        });
+    }
+
+    private void updateSeekBarRelatedUI(int progress){
+        venuesActivityBinding.seekBarValue.setAlpha(1.0f);
+        venuesActivityBinding.seekBarValue.setText(String.format(getString(R.string.radius_text), venuesActivityBinding.radiusTunerSeekBar.getProgress()));
+        AnimationUtils.runAlphaAnimationOnAView(venuesActivityBinding.seekBarValue, AnimationUtils.DURATION_MEDIUM, false);
+        MapUtils.updateSurroundingCircleRadius(progress*1000);
+
+    }
+
+    private void updateRadiusByDelayedHandler(int progress) {
+        delayedOperationHandler.removeMessages(RADIUS_UPDATE_MESSAGE_ID);
+        Message updateRadiusMessage = delayedOperationHandler.obtainMessage(RADIUS_UPDATE_MESSAGE_ID);
+        Bundle data = new Bundle();
+        data.putInt(RADIUS_VALUE_MESSAGE_KEY, progress*1000);
+        updateRadiusMessage.setData(data);
+        delayedOperationHandler.sendMessageDelayed(updateRadiusMessage, 1000);
     }
 
     private void initUIMediator(){
@@ -192,8 +220,8 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
         venueRequestListenerProxy = new VenueRequestListenerProxy(VenuesMapActivity.this);
     }
 
-    private void initVenueListRecyclerView() {
-        venueListProxy = new VenueRecyclerViewProxy(venuesActivityBinding.venuesListContent.venuesRecyclerView, this);
+    private void initVenueRecyclerView() {
+        venueRecyclerViewProxy = new VenueRecyclerViewProxy(venuesActivityBinding.venuesListContent.venuesRecyclerView, this);
     }
 
     @Override
@@ -254,23 +282,18 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
     @Override
     public void onMapReady(GoogleMap googleMap) {
         venuesMap = googleMap;
-        MapsInitializer.initialize(this);
         setMapProperties(venuesMap);
-        uiItemMediator.onInjectMapUIItemProxy(venuesMap);
-        venueListProxy.setRecyclerViewAdapter();
+        uiItemMediator.onInjectVenueMarkerItemProxy(venuesMap);
     }
 
     private void setMapProperties(GoogleMap googleMap) throws SecurityException{
         googleMap.setBuildingsEnabled(true);
         googleMap.getUiSettings().setMapToolbarEnabled(false);
-        if (permissionHandlerProxy.isLocationPermissionGranted()) {
-            googleMap.setMyLocationEnabled(true);
-            googleMap.setOnMyLocationButtonClickListener(this);
-            tunePositionOfMyLocationButton();
-        }
         googleMap.setMinZoomPreference(6.0f);
         googleMap.setMaxZoomPreference(18.0f);
-
+        if (permissionHandlerProxy.isLocationPermissionGranted()) {
+            setMapPropertiesForMyLocation();
+        }
         googleMap.setInfoWindowAdapter(new MapMarkerInfoAdapter(this));
         googleMap.setOnInfoWindowClickListener(this);
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
@@ -282,11 +305,15 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
         });
     }
 
+    private void setMapPropertiesForMyLocation() throws SecurityException{
+        venuesMap.setMyLocationEnabled(true);
+        venuesMap.setOnMyLocationButtonClickListener(this);
+        tunePositionOfMyLocationButton();
+    }
+
     private void tunePositionOfMyLocationButton(){
         View locationButton = ((View) venuesActivityBinding.map.findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
         RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) locationButton.getLayoutParams();
-
-        // position on right bottom
         rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
         rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
         rlp.setMargins(0, 0, 30, 30);
@@ -301,7 +328,26 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
     }
 
     public void refreshVenueAdapter(){
-        venueListProxy.refreshVenueAdapter();
+        venueRecyclerViewProxy.refreshVenueAdapter();
+    }
+
+    public void onMyLocationReceivedFirstTime(){
+        locationProviderProxy.setFirstLocationRequestReceived(true);
+        locationSettingCheckerProxy.hideLocationSettingError();
+        venueRecyclerViewProxy.setRecyclerViewAdapter();
+
+        MapUtils.putCameraToPosition(true, venuesMap, locationProviderProxy.getMyPosition(), new CustomGoogleMapCancellableCallback() {
+            @Override
+            public void onFinish() {
+                uiItemMediator.onMyLocationReceivedForTheFirstTime();
+                MapUtils.setRadiusCircle(VenuesMapActivity.this, venuesMap);
+            }
+        });
+    }
+
+    public void onMyLocationChanged(){
+        MapUtils.updateSurroundingCircleByMyLocation(VenuesMapActivity.this);
+        uiItemMediator.updateVenueMarkerItems();
     }
 
     public void updateViewOnVenueMarkerItemClicked(FsqExploredVenue venue){
@@ -335,16 +381,13 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
     public boolean onMyLocationButtonClick() {
         if(!MapUtils.isMyLocationVisible(locationProviderProxy.getMyPosition(), venuesMap)){
             venuesMap.moveCamera(CameraUpdateFactory.newLatLng(locationProviderProxy.getMyPosition()));
-            MapUtils.refreshMapWithBranchesByArea(VenuesMapActivity.this, venuesMap);
         }
-        uiItemMediator.onMyLocationClicked();
+
         return false;
     }
 
     @Override
-    public void onCameraMove() {
-        // TODO
-    }
+    public void onCameraMove() {}
 
     @Override
     public void onListItemClick(FsqExploredVenue venue) {

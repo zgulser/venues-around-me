@@ -10,7 +10,7 @@ import assignment.adyen.com.venuesaroundme.permission.PermissionBroker;
 import assignment.adyen.com.venuesaroundme.ui.VenuesMapActivity;
 
 /**
- * Created by Zeki
+ * Created by Zeki on 28/06/2017.
  */
 
 public class PermissionHandlerProxy {

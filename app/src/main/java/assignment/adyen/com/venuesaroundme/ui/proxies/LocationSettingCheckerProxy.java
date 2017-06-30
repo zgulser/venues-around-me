@@ -1,8 +1,6 @@
 package assignment.adyen.com.venuesaroundme.ui.proxies;
 
 import android.content.Intent;
-import android.os.Handler;
-import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
@@ -22,15 +20,13 @@ import java.util.List;
 
 import assignment.adyen.com.venuesaroundme.R;
 import assignment.adyen.com.venuesaroundme.application.FsqVenuesApplication;
-import assignment.adyen.com.venuesaroundme.location.ILocationProvider;
 import assignment.adyen.com.venuesaroundme.location.ILocationSettingChecker;
 import assignment.adyen.com.venuesaroundme.location.ILocationSettingObserver;
 import assignment.adyen.com.venuesaroundme.location.LocationUtils;
-import assignment.adyen.com.venuesaroundme.ui.MapUtils;
 import assignment.adyen.com.venuesaroundme.ui.VenuesMapActivity;
 
 /**
- * Created by Zeki
+ * Created by Zeki on 28/06/2017.
  */
 
 public class LocationSettingCheckerProxy implements ILocationSettingChecker {
@@ -105,7 +101,7 @@ public class LocationSettingCheckerProxy implements ILocationSettingChecker {
     }
 
     @Override
-    public void hideMyLocationError(){
+    public void hideLocationSettingError(){
         if(locationSettingsDisabledSnackBar != null){
             locationSettingsDisabledSnackBar.dismiss();
         }

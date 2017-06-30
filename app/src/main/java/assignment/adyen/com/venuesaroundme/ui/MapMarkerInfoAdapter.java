@@ -5,7 +5,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
 
 /**
- * Created by Zeki
+ * Created by Zeki on 29/06/2017.
  */
 
 public class MapMarkerInfoAdapter implements GoogleMap.InfoWindowAdapter {

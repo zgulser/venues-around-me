@@ -17,7 +17,7 @@ public class FsqExploredVenueGroup {
     String name;
 
     @SerializedName("items")
-    List<FsqExploredVenueItem> fsqExploredResponseGroupItems;
+    List<FsqExploredVenueItem> items;
 
     public String getType() {
         return type;
@@ -27,7 +27,7 @@ public class FsqExploredVenueGroup {
         return name;
     }
 
-    public List<FsqExploredVenueItem> getFsqExploredResponseGroupItems(){
-        return fsqExploredResponseGroupItems;
+    public List<FsqExploredVenueItem> getItems(){
+        return items;
     }
 }

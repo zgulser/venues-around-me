@@ -4,7 +4,9 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
 
+    <color name="colorBorderImageWithAlpha">#99DBDFF5</color>
     <color name="colorBorderImage">#DBDFF5</color>
     <color name="colorListBg">#88DBDFF5</color>
     <color name="colorMapBg">#EAEAEA</color>
+    <color name="colorMapBgWithAlpha">#223F51B5</color>
 </resources>
