@@ -4,7 +4,7 @@ import android.content.pm.PackageManager;
 import android.support.v4.content.ContextCompat;
 
 import assignment.adyen.com.venuesaroundme.R;
-import assignment.adyen.com.venuesaroundme.networking.VenueTestable;
+import assignment.adyen.com.venuesaroundme.testhelpers.VenueTestable;
 import assignment.adyen.com.venuesaroundme.permission.GetLocationGrant;
 import assignment.adyen.com.venuesaroundme.permission.Grant;
 import assignment.adyen.com.venuesaroundme.permission.PermissionBroker;

@@ -1,9 +1,7 @@
 package assignment.adyen.com.venuesaroundme.networking;
 
 import android.content.Intent;
-import android.support.annotation.VisibleForTesting;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +12,7 @@ import assignment.adyen.com.venuesaroundme.application.FsqVenuesApplication;
 import assignment.adyen.com.venuesaroundme.location.LocationUtils;
 import assignment.adyen.com.venuesaroundme.model.entities.FsqVenueRequestRoot;
 import assignment.adyen.com.venuesaroundme.networking.utils.NetworkingUtils;
+import assignment.adyen.com.venuesaroundme.testhelpers.VenueTestable;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;

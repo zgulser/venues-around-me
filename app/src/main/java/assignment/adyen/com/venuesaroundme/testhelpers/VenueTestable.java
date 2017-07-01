@@ -1,4 +1,4 @@
-package assignment.adyen.com.venuesaroundme.networking;
+package assignment.adyen.com.venuesaroundme.testhelpers;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,12 +1,7 @@
 package assignment.adyen.com.venuesaroundme;
 
-import android.content.Context;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.filters.MediumTest;
 import android.support.test.runner.AndroidJUnit4;
-import android.util.Log;
-
-import com.google.android.gms.common.api.GoogleApiClient;
 
 import org.junit.Before;
 import org.junit.FixMethodOrder;
@@ -21,11 +16,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import assignment.adyen.com.venuesaroundme.location.LocationProviderProxy;
 import assignment.adyen.com.venuesaroundme.location.TestLocationProvider;
 import assignment.adyen.com.venuesaroundme.networking.FsqVenueRequestController;
 import assignment.adyen.com.venuesaroundme.networking.IFsqVenueExplorerService;
-import assignment.adyen.com.venuesaroundme.networking.VenueTestable;
+import assignment.adyen.com.venuesaroundme.testhelpers.VenueTestable;
 import assignment.adyen.com.venuesaroundme.networking.utils.NetworkingUtils;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
