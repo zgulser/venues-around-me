@@ -23,12 +23,10 @@ public class VenueRequestListenerProxy {
         public void onReceive(Context context, Intent intent) {
             String actionReceived = intent.getAction();
             if(actionReceived.equals(NetworkingUtils.REQUEST_SUCCEDED_BROADCAST)){
-                venuesMapActivity.addVenuesToMap(false);
+                venuesMapActivity.addVenuesToMap();
                 venuesMapActivity.refreshVenueAdapter();
-                if(venuesMapActivity.getLocationProviderProxy().isFirstLocationRequestReceived()){
-                    venuesMapActivity.getLocationProviderProxy().setFirstLocationRequestReceived(false);
-                    venuesMapActivity.getVenuesMap().setOnCameraMoveListener(venuesMapActivity);
-                }
+            } else if(actionReceived.equals(NetworkingUtils.REQUEST_FILTERED_BROADCAST)){
+                venuesMapActivity.clearAndAddVenuesToMap();
             } else if(actionReceived.equals(NetworkingUtils.REQUEST_FAILED_BROADCAST)){
                 Snackbar.make(venuesMapActivity.getWindow().getDecorView().getRootView(),
                         venuesMapActivity.getString(R.string.venue_load_error), Snackbar.LENGTH_SHORT).show();
@@ -43,6 +41,8 @@ public class VenueRequestListenerProxy {
     public void registerBroadcastReceiverProxy() {
         LocalBroadcastManager.getInstance(venuesMapActivity).registerReceiver(
                 venueRequestBroadcastListener, new IntentFilter(NetworkingUtils.REQUEST_SUCCEDED_BROADCAST));
+        LocalBroadcastManager.getInstance(venuesMapActivity).registerReceiver(
+                venueRequestBroadcastListener, new IntentFilter(NetworkingUtils.REQUEST_FILTERED_BROADCAST));
         LocalBroadcastManager.getInstance(venuesMapActivity).registerReceiver(
                 venueRequestBroadcastListener, new IntentFilter(NetworkingUtils.REQUEST_FAILED_BROADCAST));
     }

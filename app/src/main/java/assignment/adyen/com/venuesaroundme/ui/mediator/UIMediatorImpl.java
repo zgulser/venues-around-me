@@ -20,20 +20,22 @@ import assignment.adyen.com.venuesaroundme.networking.imagerequests.VolleyImageR
 import assignment.adyen.com.venuesaroundme.ui.utils.MapUtils;
 import assignment.adyen.com.venuesaroundme.ui.VenuesMapActivity;
 import assignment.adyen.com.venuesaroundme.ui.proxies.VenueMarkerItemProxy;
-import assignment.adyen.com.venuesaroundme.ui.proxies.SearchUIProxy;
+import assignment.adyen.com.venuesaroundme.ui.proxies.SearchAndNavigationUIProxy;
 
 /**
  * Created by Zeki 28/07/2016
  */
 
-public class UIMediatorImpl implements IUIMediator {
+public class UIMediatorImpl implements IUIMediator, SearchAndNavigationUIProxy.ISearchActionsListener{
 
     private VenuesActivityBinding venuesActivityBinding;
     private VenueMarkerItemProxy venueMarkerItemProxy;
-    private SearchUIProxy searchUIProxy;
+    private BottomSheetBehavior venueBottomSheetBehaviour;
+    private SearchAndNavigationUIProxy searchAndNavigationUIProxy;
 
-    public UIMediatorImpl(VenuesActivityBinding venuesActivityBinding){
+    public UIMediatorImpl(VenuesActivityBinding venuesActivityBinding, BottomSheetBehavior venueBottomSheetBehaviour){
         this.venuesActivityBinding = venuesActivityBinding;
+        this.venueBottomSheetBehaviour = venueBottomSheetBehaviour;
     }
 
     @Override
@@ -42,12 +44,12 @@ public class UIMediatorImpl implements IUIMediator {
     }
 
     @Override
-    public void onNavigateToListView(BottomSheetBehavior bottomSheetBehavior) {
+    public void onNavigateToListView() {
         if (Build.VERSION.SDK_INT >= 19) {
             TransitionManager.beginDelayedTransition(venuesActivityBinding.rootLayout);
         }
 
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+        venueBottomSheetBehaviour.setState(BottomSheetBehavior.STATE_COLLAPSED);
         venuesActivityBinding.venueMapViewParent.setVisibility(View.GONE);
         venuesActivityBinding.venueListViewParent.setVisibility(View.VISIBLE);
     }
@@ -60,13 +62,15 @@ public class UIMediatorImpl implements IUIMediator {
 
         venuesActivityBinding.venueMapViewParent.setVisibility(View.VISIBLE);
         venuesActivityBinding.venueListViewParent.setVisibility(View.GONE);
+        searchAndNavigationUIProxy.navigateToMapMode(false);
     }
 
     @Override
-    public void onItemSelected(FsqExploredVenue venue, BottomSheetBehavior bottomSheetBehavior) {
-        bottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+    public void onItemSelected(FsqExploredVenue venue) {
+        venueBottomSheetBehaviour.setState(BottomSheetBehavior.STATE_EXPANDED);
+        onUpdateBottomSheetItem(venue);
         closeInfoViews();
-        findMarkerAndOpenInfoWindow(venue);
+        findMarkerAndUpdateView(venue);
     }
 
     private void closeInfoViews(){
@@ -75,10 +79,10 @@ public class UIMediatorImpl implements IUIMediator {
         }
     }
 
-    private void findMarkerAndOpenInfoWindow(FsqExploredVenue fsqExploredVenue){
+    private void findMarkerAndUpdateView(FsqExploredVenue fsqExploredVenue){
         for(Marker marker : venueMarkerItemProxy.getMarkerList()){
             if(marker.getTag() == fsqExploredVenue){
-                marker.showInfoWindow();
+                venueMarkerItemProxy.updateSelectedMarkerItem(marker);
                 MapUtils.putCameraToPosition(false, venueMarkerItemProxy.getVenueMap(), marker.getPosition(), null);
             }
         }
@@ -95,14 +99,9 @@ public class UIMediatorImpl implements IUIMediator {
 
     @Override
     public void onClearMap() {
-        cleanVenuesOnMap();
+        venueMarkerItemProxy.getVenueMap().clear();
         cleanMarkerItems();
-    }
-
-    private void cleanVenuesOnMap(){
-        if(venueMarkerItemProxy.getVenueMap() != null){
-            MapUtils.clearVenuesOnMap(venueMarkerItemProxy.getVenueMap());
-        }
+        MapUtils.addRadiusCircle(venuesActivityBinding.getRoot().getResources(), venueMarkerItemProxy.getVenueMap());
     }
 
     private void cleanMarkerItems(){
@@ -116,7 +115,8 @@ public class UIMediatorImpl implements IUIMediator {
 
     @Override
     public void onInjectSearchUIProxy(VenuesMapActivity venuesMapActivity, int fragmentID) {
-        searchUIProxy = new SearchUIProxy(venuesMapActivity,
+        searchAndNavigationUIProxy = new SearchAndNavigationUIProxy(venuesMapActivity,
+                this,
                 fragmentID,
                 venuesActivityBinding.searchView,
                 venuesActivityBinding.buttonSearch);
@@ -130,7 +130,7 @@ public class UIMediatorImpl implements IUIMediator {
         venuesActivityBinding.bottomSheetContent.venueRatingBottomSheet.setText(venue.getRating());
         venuesActivityBinding.bottomSheetContent.venueAddressBottomSheet.setText(venue.getLocation().getAddress());
         setVenueHoursValue(venue);
-        loadVenueImages(venue);
+        setSampleVenueImages(venue);
     }
 
     private void setVenueHoursValue(FsqExploredVenue venue){
@@ -152,18 +152,13 @@ public class UIMediatorImpl implements IUIMediator {
      *
      * @param venue
      */
-    private void loadVenueImages(FsqExploredVenue venue){
+    private void setSampleVenueImages(FsqExploredVenue venue){
         for (int i=0; i < 20; i++){
-            loadVenueImage();
+            setVenueImage();
         }
     }
 
-    /**
-     *
-     * Desc: Part of the mock method above
-     *
-     */
-    private void loadVenueImage(){
+    private void setVenueImage(){
         NetworkImageView imageView = new NetworkImageView(venuesActivityBinding.getRoot().getContext());
         imageView.setDefaultImageResId(R.drawable.london);
         imageView.setErrorImageResId(R.drawable.london);
@@ -173,5 +168,15 @@ public class UIMediatorImpl implements IUIMediator {
         params.setMargins(5, 5, 5, 5);
         imageView.setLayoutParams(params);
         venuesActivityBinding.bottomSheetContent.horizontalScrollLinear.addView(imageView);
+    }
+
+    @Override
+    public void onNavigateToMapViewIconClicked() {
+        onNavigateToMapView();
+    }
+
+    @Override
+    public void onNavigateToListViewIconClicked() {
+        onNavigateToListView();
     }
 }

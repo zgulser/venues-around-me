@@ -3,6 +3,7 @@ package assignment.adyen.com.venuesaroundme.networking;
 import android.content.Intent;
 import android.support.annotation.VisibleForTesting;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,10 +54,6 @@ public class FsqVenueRequestController implements IVenueRequestContract {
 
     private void initObservers(){
         fsqVenueRequestObservers = new ArrayList<>();
-    }
-
-    public IFsqVenueExplorerService getFsqVenueExplorerService() {
-        return fsqVenueExplorerService;
     }
 
     public void addFsqVenueRequestObserver(IFsqVenueRequestObserver fsqVenueRequestObserver) {

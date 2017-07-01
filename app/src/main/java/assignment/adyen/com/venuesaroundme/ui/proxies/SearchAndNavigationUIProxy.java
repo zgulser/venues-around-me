@@ -15,6 +15,7 @@ import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 
 import assignment.adyen.com.venuesaroundme.R;
 import assignment.adyen.com.venuesaroundme.ui.VenuesMapActivity;
+import assignment.adyen.com.venuesaroundme.ui.mediator.UIMediatorImpl;
 import assignment.adyen.com.venuesaroundme.ui.specialobjects.CustomPlaceSelectionListener;
 import assignment.adyen.com.venuesaroundme.ui.specialobjects.CustomTextWatcher;
 
@@ -22,11 +23,11 @@ import assignment.adyen.com.venuesaroundme.ui.specialobjects.CustomTextWatcher;
  * Created by Zeki on 28/02/2017.
  */
 
-public class SearchUIProxy implements View.OnClickListener{
-    private Activity activity;
+public class SearchAndNavigationUIProxy implements View.OnClickListener{
+
     private SearchView searchView;
     private Button customSearchButton;
-    private SearchActionsListener searchActionsListener;
+    private ISearchActionsListener searchActionsListenerImpl;
     private EditText searchEditText;
     private ImageButton navigationButton;
     private ImageButton clearSearchButton;
@@ -37,25 +38,29 @@ public class SearchUIProxy implements View.OnClickListener{
         SEARCH_MORE_ON_LIST
     }
 
-    public interface SearchActionsListener{
+    public interface ISearchActionsListener{
         void onNavigateToMapViewIconClicked();
         void onNavigateToListViewIconClicked();
     }
 
-    public SearchUIProxy(VenuesMapActivity venuesMapActivity, int placesFragmentId, SearchView searchView, Button customSearchButton){
-        this.activity = venuesMapActivity;
+    public SearchAndNavigationUIProxy(VenuesMapActivity venuesMapActivity, UIMediatorImpl uiMediator,
+                                      int placesFragmentId, SearchView searchView, Button customSearchButton){
+        this.searchActionsListenerImpl = (ISearchActionsListener) uiMediator;
         this.searchView = searchView;
         this.customSearchButton = customSearchButton;
-        this.searchActionsListener = venuesMapActivity;
         this.searchMode = SearchMode.SEARCH_MORE_ON_MAP;
 
-        initPlacesSearchFragment(placesFragmentId);
+        initPlacesSearchFragment(venuesMapActivity, placesFragmentId);
         initListeners();
     }
 
-    private void initPlacesSearchFragment(int placesFragmentId) {
+    public void addSearchActionListener(ISearchActionsListener searchActionsListenerImpl){
+        this.searchActionsListenerImpl = searchActionsListenerImpl;
+    }
+
+    private void initPlacesSearchFragment(VenuesMapActivity venuesMapActivity, int placesFragmentId) {
         PlaceAutocompleteFragment autocompleteFragment = (PlaceAutocompleteFragment)
-                activity.getFragmentManager().findFragmentById(placesFragmentId);
+                venuesMapActivity.getFragmentManager().findFragmentById(placesFragmentId);
 
         initPlaceSelectionListener(autocompleteFragment);
         initVenuesSearchButton(autocompleteFragment);
@@ -103,7 +108,7 @@ public class SearchUIProxy implements View.OnClickListener{
                 if(searchMode == SearchMode.SEARCH_MORE_ON_MAP){
                     navigateToListMode();
                 } else {
-                    navigateToMapMode();
+                    navigateToMapMode(true);
                 }
             }
         });
@@ -112,13 +117,17 @@ public class SearchUIProxy implements View.OnClickListener{
     public void navigateToListMode(){
         searchMode = SearchMode.SEARCH_MORE_ON_LIST;
         navigationButton.setImageResource(R.drawable.ic_arrow_back);
-        searchActionsListener.onNavigateToListViewIconClicked();
+        if(searchActionsListenerImpl != null) {
+            searchActionsListenerImpl.onNavigateToListViewIconClicked();
+        }
     }
 
-    public void navigateToMapMode(){
+    public void navigateToMapMode(boolean callListener){
         searchMode = SearchMode.SEARCH_MORE_ON_MAP;
         navigationButton.setImageResource(R.drawable.ic_menu);
-        searchActionsListener.onNavigateToMapViewIconClicked();
+        if(searchActionsListenerImpl != null && callListener) {
+            searchActionsListenerImpl.onNavigateToMapViewIconClicked();
+        }
     }
 
     private void initPlacesClearButton(PlaceAutocompleteFragment autocompleteFragment) {

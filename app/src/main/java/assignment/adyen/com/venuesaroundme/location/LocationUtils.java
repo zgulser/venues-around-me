@@ -14,6 +14,7 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
@@ -25,13 +26,14 @@ import assignment.adyen.com.venuesaroundme.application.FsqVenuesApplication;
 
 /**
  * Created by Zeki on 25/06/2017.
+ *
  */
 
 public class LocationUtils {
 
-    public static final String MY_LOCATION_RECEIVED = "adyen.com.venuesaroundme.MY_LOCATION_RECEIVED";
-    public static final String MY_LOCATION_RECEIVED_NULL = "adyen.com.venuesaroundme.MY_LOCATION_RECEIVED_NULL";
-    public static final String MY_LOCATION_RECEIVED_FIRST_TIME = "adyen.com.venuesaroundme.MY_LOCATION_RECEIVED_FIRST_TIME";
+    public static final String MY_LOCATION_RECEIVED = "com.venuesaroundme.adyen.MY_LOCATION_RECEIVED";
+    public static final String MY_LOCATION_RECEIVED_NULL = "com.venuesaroundme.adyen.MY_LOCATION_RECEIVED_NULL";
+    public static final String MY_LOCATION_RECEIVED_FIRST_TIME = "com.venuesaroundme.adyen.MY_LOCATION_RECEIVED_FIRST_TIME";
     public static final int LOCATION_UPDATE_INTERVAL_IN_MS = 30000;
     public static final int LOCATION_UPDATE_FASTEST_INTERVAL_IN_MS = 20000;
     public static final int LOCATION_UPDATE_DELAY_IN_MS = 10000;
@@ -94,7 +96,31 @@ public class LocationUtils {
                 surroundingRadius * Math.sqrt(2.0), 225);
         LatLng northeast = SphericalUtil.computeOffset(LocationProviderProxy.getMyPosition(),
                 surroundingRadius * Math.sqrt(2.0), 45);
-        return new LatLngBounds(southwest, northeast);
+        return LatLngBounds.builder().include(southwest).include(northeast).build();
+    }
+
+    /**
+     *
+     * Returns the polygonic bounds of the current radius
+     *
+     * @param surroundingRadius
+     * @param precision in degree between 0 & 360
+     * @return
+     */
+    public static LatLngBounds getPolygonicBoundaryOfCurrentRadius(int surroundingRadius, int precision){
+        LatLngBounds.Builder builder = LatLngBounds.builder();
+        for(int i=0; i <= 360; i = i+precision){
+            LatLng boundaryitem = SphericalUtil.computeOffset(LocationProviderProxy.getMyPosition(),
+                    surroundingRadius * Math.sqrt(2.0), i);
+            builder.include(boundaryitem);
+        }
+        return builder.build();
+    }
+
+    public static int getBoundingDistance(){
+        LatLng myLatLng = new LatLng(LocationProviderProxy.getMyPosition().latitude,LocationProviderProxy.getMyPosition().longitude);
+        LatLng dest = SphericalUtil.computeOffset(myLatLng, LocationUtils.surroundingRadius, 0);
+        return (int)SphericalUtil.computeDistanceBetween(myLatLng, dest);
     }
 
     public static String getFormattedDistance(int distance) {

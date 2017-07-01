@@ -5,6 +5,7 @@ import android.location.Location;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
@@ -41,6 +42,18 @@ public class VenueMarkerItemProxy {
                 .flat(true));
         item.setTag(venue);
         markerList.add(item);
+    }
+
+    public void updateSelectedMarkerItem(Marker marker){
+        clearSelection();
+        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW));
+        marker.showInfoWindow();
+    }
+
+    private void clearSelection(){
+        for(Marker marker : markerList){
+            marker.setIcon(BitmapDescriptorFactory.defaultMarker());
+        }
     }
 
     public void updateVenueMarkerItemsTitle(){

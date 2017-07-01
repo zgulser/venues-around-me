@@ -3,15 +3,9 @@ package assignment.adyen.com.venuesaroundme.ui.mediator;
 import android.support.design.widget.BottomSheetBehavior;
 
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.model.Marker;
 
-import java.util.List;
-
-import assignment.adyen.com.venuesaroundme.location.LocationProviderProxy;
 import assignment.adyen.com.venuesaroundme.model.entities.FsqExploredVenue;
 import assignment.adyen.com.venuesaroundme.ui.VenuesMapActivity;
-import assignment.adyen.com.venuesaroundme.ui.proxies.SearchUIProxy;
-import assignment.adyen.com.venuesaroundme.ui.proxies.VenueMarkerItemProxy;
 
 /**
  * Created by Zeki on 28/07/2017
@@ -19,9 +13,9 @@ import assignment.adyen.com.venuesaroundme.ui.proxies.VenueMarkerItemProxy;
 
 public interface IUIMediator {
     void onMyLocationReceivedForTheFirstTime();
-    void onNavigateToListView(BottomSheetBehavior bottomSheetBehavior);
+    void onNavigateToListView();
     void onNavigateToMapView();
-    void onItemSelected(FsqExploredVenue venue, BottomSheetBehavior bottomSheetBehavior);
+    void onItemSelected(FsqExploredVenue venue);
     void onPopulateMapWithVenueMarkers();
     void onClearMap();
     void onInjectVenueMarkerItemProxy(GoogleMap venuesMap);

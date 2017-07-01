@@ -24,13 +24,13 @@ import assignment.adyen.com.venuesaroundme.networking.imagerequests.VolleyImageR
 public class VenueItemAdapter extends RecyclerView.Adapter<VenueItemAdapter.VenueItemHolder>{
 
     private List<FsqExploredVenue> venueList;
-    private IListItemClickListener  listItemClickListenerImpl;
+    private IVenueListItemClickListener  listItemClickListenerImpl;
 
-    public interface IListItemClickListener {
-        void onListItemClick(FsqExploredVenue venue);
+    public interface IVenueListItemClickListener {
+        void onVenueListItemClick(FsqExploredVenue venue);
     }
 
-    public VenueItemAdapter(IListItemClickListener listItemClickListener, List<FsqExploredVenue> venueList){
+    public VenueItemAdapter(IVenueListItemClickListener listItemClickListener, List<FsqExploredVenue> venueList){
         this.listItemClickListenerImpl = listItemClickListener;
         this.venueList = venueList;
     }
@@ -82,7 +82,7 @@ public class VenueItemAdapter extends RecyclerView.Adapter<VenueItemAdapter.Venu
         @Override
         public void onClick(View view) {
             int position = getAdapterPosition();
-            listItemClickListenerImpl.onListItemClick(venueList.get(position));
+            listItemClickListenerImpl.onVenueListItemClick(venueList.get(position));
         }
     }
 }

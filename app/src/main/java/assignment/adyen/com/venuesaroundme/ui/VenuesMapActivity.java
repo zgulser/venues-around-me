@@ -17,7 +17,6 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.Marker;
@@ -37,7 +36,7 @@ import assignment.adyen.com.venuesaroundme.ui.mediator.IUIMediator;
 import assignment.adyen.com.venuesaroundme.ui.proxies.LocationChangeListenerProxy;
 import assignment.adyen.com.venuesaroundme.ui.proxies.LocationSettingCheckerProxy;
 import assignment.adyen.com.venuesaroundme.ui.proxies.PermissionHandlerProxy;
-import assignment.adyen.com.venuesaroundme.ui.proxies.SearchUIProxy;
+import assignment.adyen.com.venuesaroundme.ui.proxies.SearchAndNavigationUIProxy;
 import assignment.adyen.com.venuesaroundme.ui.proxies.VenueRecyclerViewProxy;
 import assignment.adyen.com.venuesaroundme.ui.proxies.VenueRequestListenerProxy;
 import assignment.adyen.com.venuesaroundme.ui.specialobjects.CustomGoogleMapCancellableCallback;
@@ -49,9 +48,8 @@ import assignment.adyen.com.venuesaroundme.ui.utils.MapUtils;
  * Created by Zeki on 27/06/2017.
  */
 
-public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCallback,
-        GoogleMap.OnInfoWindowClickListener, GoogleMap.OnCameraMoveListener, GoogleMap.OnMyLocationButtonClickListener,
-        SearchUIProxy.SearchActionsListener, VenueItemAdapter.IListItemClickListener{
+public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCallback, GoogleMap.OnInfoWindowClickListener
+        , GoogleMap.OnCameraMoveListener, GoogleMap.OnMyLocationButtonClickListener, VenueItemAdapter.IVenueListItemClickListener{
 
     private VenueRecyclerViewProxy venueRecyclerViewProxy;
     private VenueRequestListenerProxy venueRequestListenerProxy;
@@ -167,7 +165,7 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
     }
 
     private void initUIMediator(){
-        uiItemMediator = new UIMediatorImpl(venuesActivityBinding);
+        uiItemMediator = new UIMediatorImpl(venuesActivityBinding, venueItemBottomSheetBehaviour);
         uiItemMediator.onInjectSearchUIProxy(this, R.id.place_autocomplete_fragment);
     }
 
@@ -289,18 +287,20 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
         googleMap.getUiSettings().setMapToolbarEnabled(false);
         googleMap.setMinZoomPreference(6.0f);
         googleMap.setMaxZoomPreference(18.0f);
-        if (permissionHandlerProxy.isLocationPermissionGranted()) {
-            setMapPropertiesForMyLocation();
-        }
         googleMap.setInfoWindowAdapter(new VenueMarkerItemInfoAdapter(this));
         googleMap.setOnInfoWindowClickListener(this);
         googleMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
-                updateViewOnVenueMarkerItemClicked((FsqExploredVenue) marker.getTag());
+                FsqExploredVenue venue = ((FsqExploredVenue) marker.getTag());
+                uiItemMediator.onItemSelected(venue);
                 return true;
             }
         });
+
+        if (permissionHandlerProxy.isLocationPermissionGranted()) {
+            setMapPropertiesForMyLocation();
+        }
     }
 
     private void setMapPropertiesForMyLocation() throws SecurityException{
@@ -317,11 +317,12 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
         rlp.setMargins(0, 0, 30, 30);
     }
 
-    public void addVenuesToMap(boolean clearMap){
-        if(clearMap) {
-            uiItemMediator.onClearMap();
-        }
+    public void clearAndAddVenuesToMap(){
+        uiItemMediator.onClearMap();
+        uiItemMediator.onPopulateMapWithVenueMarkers();
+    }
 
+    public void addVenuesToMap(){
         uiItemMediator.onPopulateMapWithVenueMarkers();
     }
 
@@ -338,7 +339,7 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
             @Override
             public void onFinish() {
                 uiItemMediator.onMyLocationReceivedForTheFirstTime();
-                MapUtils.setRadiusCircle(VenuesMapActivity.this, venuesMap);
+                MapUtils.addRadiusCircle(getResources(), venuesMap);
             }
         });
     }
@@ -348,22 +349,12 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
         uiItemMediator.updateVenueMarkerItems();
     }
 
-    public void updateViewOnVenueMarkerItemClicked(FsqExploredVenue venue){
-        uiItemMediator.onUpdateBottomSheetItem(venue);
-        uiItemMediator.onItemSelected(venue, venueItemBottomSheetBehaviour);
-    }
-
-    public void updateViewOnVenueListItemClick(FsqExploredVenue venue){
-        uiItemMediator.onNavigateToMapView();
-        uiItemMediator.onItemSelected(venue, venueItemBottomSheetBehaviour);
-    }
-
     public void goToGoogleMapsForDirections(FsqExploredVenue venue){
-        uiItemMediator.onItemSelected(venue, venueItemBottomSheetBehaviour);
-        sendGoogleMapsIntent(venue);
+        uiItemMediator.onItemSelected(venue);
+        sendGoogleMapsDirectionIntent(venue);
     }
 
-    private void sendGoogleMapsIntent(FsqExploredVenue fsqExploredVenue){
+    private void sendGoogleMapsDirectionIntent(FsqExploredVenue fsqExploredVenue){
         Uri gmmIntentUri = Uri.parse(String.format(Locale.ENGLISH, "google.navigation:q=%f,%f",
                 fsqExploredVenue.getLocation().getLatitude(), fsqExploredVenue.getLocation().getLongitude()));
         Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
@@ -382,21 +373,14 @@ public class VenuesMapActivity extends FragmentActivity implements OnMapReadyCal
     }
 
     @Override
-    public void onCameraMove() {}
-
-    @Override
-    public void onListItemClick(FsqExploredVenue venue) {
-        updateViewOnVenueListItemClick(venue);
+    public void onCameraMove() {
+        //TODO
     }
 
     @Override
-    public void onNavigateToMapViewIconClicked() {
+    public void onVenueListItemClick(FsqExploredVenue venue) {
         uiItemMediator.onNavigateToMapView();
-    }
-
-    @Override
-    public void onNavigateToListViewIconClicked() {
-        uiItemMediator.onNavigateToListView(venueItemBottomSheetBehaviour);
+        uiItemMediator.onItemSelected(venue);
     }
 
     public LocationProviderProxy getLocationProviderProxy(){

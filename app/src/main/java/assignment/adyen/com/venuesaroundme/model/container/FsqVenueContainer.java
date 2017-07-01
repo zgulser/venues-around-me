@@ -2,9 +2,12 @@ package assignment.adyen.com.venuesaroundme.model.container;
 
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.ArrayMap;
+import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.Polygon;
 import com.google.maps.android.SphericalUtil;
 
 import java.util.ArrayList;
@@ -30,14 +33,14 @@ import assignment.adyen.com.venuesaroundme.networking.utils.NetworkingUtils;
 public class FsqVenueContainer implements IFsqVenueRequestObserver {
 
     private static FsqVenueContainer fsqVenueContainer;
-    private List<FsqExploredVenue> fsqVenueListBuffer;
+    private ArrayMap<String, FsqExploredVenue> fsqVenueListBuffer;
     private List<FsqExploredVenue> fsqVenueListFilteredByRadius;
-    private static boolean firstDownload = true;
+    private static boolean newDownload = true;
 
     private FsqVenueContainer() {initRepoList();}
 
     private void initRepoList(){
-        fsqVenueListBuffer = new ArrayList<>();
+        fsqVenueListBuffer = new ArrayMap<>();
         fsqVenueListFilteredByRadius = new ArrayList<>();
     }
 
@@ -50,10 +53,9 @@ public class FsqVenueContainer implements IFsqVenueRequestObserver {
     }
 
     public List<FsqExploredVenue> getFsqVenueList(double myLocationLatitude, double myLocationLongitude) {
-        if(firstDownload) {
-            fsqVenueListBuffer.clear();
+        if(newDownload) {
             FsqVenueRequestController.getInstance().get(true, myLocationLatitude, myLocationLongitude);
-            firstDownload = false;
+            newDownload = false;
         }
 
         return fsqVenueListFilteredByRadius;
@@ -64,7 +66,6 @@ public class FsqVenueContainer implements IFsqVenueRequestObserver {
         extractAndAddVenueItemsFromResponse(response);
         filterVenuesByRadius();
         sortVenueListByDistance();
-
         LocalBroadcastManager.getInstance(FsqVenuesApplication.getAppContext()).
                 sendBroadcast(new Intent(NetworkingUtils.REQUEST_SUCCEDED_BROADCAST));
     }
@@ -87,23 +88,29 @@ public class FsqVenueContainer implements IFsqVenueRequestObserver {
         }
 
         for(FsqExploredVenue fsqExploredVenue : fsqExploredResponseGroupItemVenues){
-            fsqVenueListBuffer.add(fsqExploredVenue);
+            if(!fsqVenueListBuffer.containsKey(fsqExploredVenue.getId())) {
+                fsqVenueListBuffer.put(fsqExploredVenue.getId(), fsqExploredVenue);
+            }
         }
     }
 
     private void filterVenuesByRadius(){
         ArrayList<FsqExploredVenue> temporaryBackupList = new ArrayList<>();
-        LatLngBounds circularBound = LocationUtils.getBoundsOfCurrentRadius(LocationUtils.surroundingRadius);
-        for (FsqExploredVenue venue : fsqVenueListBuffer){
-            if(isInside(venue, circularBound)){
+        int distBetween = LocationUtils.getBoundingDistance();
+        for (FsqExploredVenue venue : fsqVenueListBuffer.values()){
+            if(isInsideBounds(venue, distBetween)){
                 temporaryBackupList.add(venue);
             }
         }
 
+        fsqVenueListFilteredByRadius.clear();
         fsqVenueListFilteredByRadius.addAll(temporaryBackupList);
-        temporaryBackupList = null;
     }
 
+    /**
+     *
+     * sortByDistance parameter might also have been used
+     */
     private void sortVenueListByDistance(){
         Collections.sort(fsqVenueListFilteredByRadius, new Comparator<FsqExploredVenue>() {
             @Override
@@ -116,20 +123,17 @@ public class FsqVenueContainer implements IFsqVenueRequestObserver {
 
     public void refreshVenuesByRadius(int newRadius){
         if(newRadius > LocationUtils.surroundingRadius){
-            firstDownload = true;
-            getFsqVenueList(LocationProviderProxy.getMyPosition().latitude, LocationProviderProxy.getMyPosition().longitude);
+            newDownload = true;
             LocationUtils.surroundingRadius = newRadius;
+            getFsqVenueList(LocationProviderProxy.getMyPosition().latitude, LocationProviderProxy.getMyPosition().longitude);
         } else {
             LocationUtils.surroundingRadius = newRadius;
             filterVenuesByRadius();
+            LocalBroadcastManager.getInstance(FsqVenuesApplication.getAppContext()).sendBroadcast(new Intent(NetworkingUtils.REQUEST_FILTERED_BROADCAST));
         }
     }
 
-    private boolean isInside(FsqExploredVenue venue, LatLngBounds circularBound){
-        return circularBound.contains(new LatLng(venue.getLocation().getLatitude(), venue.getLocation().getLongitude()));
-    }
-
-    public List<FsqExploredVenue> getFsqVenueListFilteredByRadius() {
-        return fsqVenueListFilteredByRadius;
+    private boolean isInsideBounds(FsqExploredVenue venue, int distBetween){
+        return venue.getLocation().getDistance() < distBetween;
     }
 }

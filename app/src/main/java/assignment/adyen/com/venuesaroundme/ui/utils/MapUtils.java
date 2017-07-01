@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Location;
 import android.location.LocationManager;
@@ -62,16 +63,15 @@ public class MapUtils {
         return mapBounds.contains(LocationProviderProxy.getMyPosition());
     }
 
-    public static void setRadiusCircle(VenuesMapActivity venuesMapActivity, GoogleMap venuesMap) {
-        if(radiusCircle == null){
-            radiusCircle = venuesMap.addCircle(new CircleOptions()
-                    .center(new LatLng(venuesMapActivity.getLocationProviderProxy().getMyPosition().latitude,
-                            venuesMapActivity.getLocationProviderProxy().getMyPosition().longitude))
-                    .radius(LocationUtils.surroundingRadius)
-                    .strokeWidth(3)
-                    .strokeColor(venuesMapActivity.getResources().getColor(R.color.colorBorderImageWithAlpha))
-                    .fillColor(venuesMapActivity.getResources().getColor(R.color.colorMapBgWithAlpha)));
-        }
+    public static void addRadiusCircle(Resources resources, GoogleMap venuesMap) {
+        radiusCircle = venuesMap.addCircle(new CircleOptions()
+                .center(new LatLng(LocationProviderProxy.getMyPosition().latitude,
+                        LocationProviderProxy.getMyPosition().longitude))
+                .radius(LocationUtils.surroundingRadius)
+                .strokeWidth(3)
+                .strokeColor(resources.getColor(R.color.colorBorderImageWithAlpha))
+                .fillColor(resources.getColor(R.color.colorMapBgWithAlpha)));
+
     }
 
     public static void updateSurroundingCircleRadius(int surroundingRadius){

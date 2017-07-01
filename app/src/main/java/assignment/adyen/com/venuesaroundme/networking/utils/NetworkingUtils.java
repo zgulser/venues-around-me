@@ -15,8 +15,9 @@ public class NetworkingUtils {
     public static final String VERSION_QUERY_PARAM_KEY = "v";
     public static final String RADIUS_QUERY_PARAM_KEY = "radius";
     public static final String VERSION_QUERY_PARAM_VALUE="20170630";
-    public static final String REQUEST_FAILED_BROADCAST = "com.zekigu.venues.request.failed_broadcast";
-    public static final String REQUEST_SUCCEDED_BROADCAST = "com.zekigu.testapp.request.succeeded_broadcast";
+    public static final String REQUEST_FAILED_BROADCAST = "com.venuesaroundme.adyen.REQUEST_FAILED_BROADCAST";
+    public static final String REQUEST_SUCCEDED_BROADCAST = "com.venuesaroundme.adyen.REQUEST_SUCCEDED_BROADCAST";
+    public static final String REQUEST_FILTERED_BROADCAST = "com.venuesaroundme.adyen.REQUEST_FILTERED_BROADCAST";
     public static enum RequestType  {
         GET_REQUEST,
         POST_REQUEST
